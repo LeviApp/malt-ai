@@ -11,7 +11,7 @@ export const Nav: React.FC = () => {
   };
 
   return (
-<header className="p-5 sticky flex flex-row justify-between items-center top-0 z-50 w-full bg-[#1400A9]">
+<header className="p-5 mb-10 sticky flex flex-row justify-between items-center top-0 z-50 w-full bg-[#1400A9]">
   {/* Logo height locked to dynamic viewport scaling */}
   <img 
     className="h-[clamp(5rem,6.5vw,6.5rem)] w-auto object-contain" 
@@ -25,7 +25,7 @@ export const Nav: React.FC = () => {
       type="button"
       aria-pressed={selectedRole === 'doctor'}
       onClick={() => handleToggle('doctor')}
-      className={`cursor-pointer ${selectedRole === 'doctor' ? 'selectedButton' : ''}`}
+      className={`nav-button cursor-pointer ${selectedRole === 'doctor' ? 'selectedButton' : ''}`}
     >
       doctor
     </button>
@@ -33,7 +33,7 @@ export const Nav: React.FC = () => {
       type="button"
       aria-pressed={selectedRole === 'patient'}
       onClick={() => handleToggle('patient')}
-      className={`cursor-pointer ${selectedRole === 'patient' ? 'selectedButton' : ''}`}
+      className={`nav-button cursor-pointer ${selectedRole === 'patient' ? 'selectedButton' : ''}`}
     >
       patient
     </button>
