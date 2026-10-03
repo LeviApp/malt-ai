@@ -1,4 +1,6 @@
+// PatientForm.tsx
 import React, { useState } from 'react';
+import { analyzePatientCase, type AnalysisRequest, type AnalysisResponse } from '../services/api';
 
 interface FormState {
   medications: string;
@@ -6,13 +8,28 @@ interface FormState {
   caseDetails: string;
 }
 
-export const PatientForm: React.FC = () => {
-  const [isLoading, setIsLoading] = useState(false)
+interface PatientFormProps {
+  /** Optional callback to pass result up to parent (e.g., App.tsx) */
+  onSubmitSuccess?: (results: AnalysisResponse) => void;
+  /** Optional external loading control from parent */
+  isLoading?: boolean;
+}
+
+export const PatientForm: React.FC<PatientFormProps> = ({
+  onSubmitSuccess,
+  isLoading: externalLoading,
+}) => {
+  const [internalLoading, setInternalLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const [formData, setFormData] = useState<FormState>({
     medications: '',
     allergies: '',
     caseDetails: '',
   });
+
+  // Effective loading state (prioritize parent prop if passed)
+  const isLoading = externalLoading ?? internalLoading;
 
   // Destructure for easy variable access anywhere in the component
   const { medications, allergies, caseDetails } = formData;
@@ -22,10 +39,44 @@ export const PatientForm: React.FC = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Submitted Patient Context:', formData);
-    // Submit logic / API call goes here
+    if (!medications.trim() || isLoading) return;
+
+    setErrorMessage(null);
+    setInternalLoading(true);
+
+    try {
+      const payload: AnalysisRequest = {
+        medications: medications.trim(),
+        allergies: allergies.trim() || undefined,
+        caseDetails: caseDetails.trim() || undefined,
+      };
+
+      const response = await analyzePatientCase(payload);
+
+      // Handle successful validation and return data
+if (response && response.isValidInput !== false) {
+        if (onSubmitSuccess) {
+          onSubmitSuccess(response);
+        }
+      } else {
+        // Reads explicit backend error string first, with schema fallbacks
+        const fallbackMsg =
+          response?.validationError ||
+          response?.error ||
+          response?.regimenInteractionNotes?.[0]?.patientFriendly ||
+          'The input could not be validated as a medical query.';
+        setErrorMessage(fallbackMsg);
+      }
+    } catch (err: any) {
+      // 🛡️ Handles 400 Bad Request / 500 API errors cleanly
+      setErrorMessage(
+        err.message || 'Failed to connect to analysis server. Make sure backend is running.'
+      );
+    } finally {
+      setInternalLoading(false);
+    }
   };
 
   return (
@@ -46,7 +97,11 @@ export const PatientForm: React.FC = () => {
           />
         </svg>
         <p>
-          <strong className="font-semibold text-amber-300">Important Medical Notice:</strong> This AI tool provides informational drug insights for reference only and is not a substitute for professional clinical judgment or direct physician consultation. Always consult a licensed healthcare professional or physician before changing, stopping, or starting any medication.
+          <strong className="font-semibold text-amber-300">Important Medical Notice:</strong> This
+          AI tool provides informational drug insights for reference only and is not a substitute
+          for professional clinical judgment or direct physician consultation. Always consult a
+          licensed healthcare professional or physician before changing, stopping, or starting
+          any medication.
         </p>
       </div>
 
@@ -56,15 +111,26 @@ export const PatientForm: React.FC = () => {
           Medication Alternative Discovery
         </h1>
         <p className="text-[#A5A6FF] text-base">
-          Enter current prescriptions, known allergies, and relevant case context to generate safe, AI-guided medication options.
+          Enter current prescriptions, known allergies, and relevant case context to generate safe,
+          AI-guided medication options.
         </p>
       </section>
 
+      {/* API Error Notification */}
+      {errorMessage && (
+        <div className="w-full mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/40 text-red-200 flex items-center justify-between text-sm sm:text-base">
+          <span>{errorMessage}</span>
+          <button
+            onClick={() => setErrorMessage(null)}
+            className="text-red-400 hover:text-white font-bold ml-4"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Form with side-by-side inputs and bottom action button */}
-      <form
-        onSubmit={handleSubmit}
-        className="w-full flex flex-col gap-6 text-white"
-      >
+      <form onSubmit={handleSubmit} className="w-full flex flex-col gap-6 text-white">
         {/* Side-by-Side Inputs Container */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
           {/* Box 1: Medications */}
@@ -76,10 +142,11 @@ export const PatientForm: React.FC = () => {
               id="medications"
               name="medications"
               rows={4}
-              value={formData.medications}
+              value={medications}
               onChange={handleChange}
+              disabled={isLoading}
               placeholder="List any current prescriptions, dosages, or supplements..."
-              className="w-full p-4 rounded-xl bg-[#1400A9] border border-[#A5A6FF]/30 text-white placeholder-[#A5A6FF] focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] resize-none select-text cursor-text"
+              className="w-full p-4 rounded-xl bg-[#1400A9] border border-[#A5A6FF]/30 text-white placeholder-[#A5A6FF] focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] resize-none select-text cursor-text disabled:opacity-50"
               autoComplete="off"
               spellCheck="false"
             />
@@ -94,10 +161,11 @@ export const PatientForm: React.FC = () => {
               id="allergies"
               name="allergies"
               rows={4}
-              value={formData.allergies}
+              value={allergies}
               onChange={handleChange}
+              disabled={isLoading}
               placeholder="List known drug allergies or severe sensitivities..."
-              className="w-full p-4 rounded-xl bg-[#1400A9] border border-[#A5A6FF]/30 text-white placeholder-[#A5A6FF] focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] resize-none select-text cursor-text"
+              className="w-full p-4 rounded-xl bg-[#1400A9] border border-[#A5A6FF]/30 text-white placeholder-[#A5A6FF] focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] resize-none select-text cursor-text disabled:opacity-50"
               autoComplete="off"
               spellCheck="false"
             />
@@ -112,10 +180,11 @@ export const PatientForm: React.FC = () => {
               id="caseDetails"
               name="caseDetails"
               rows={4}
-              value={formData.caseDetails}
+              value={caseDetails}
               onChange={handleChange}
+              disabled={isLoading}
               placeholder="Describe relevant medical history, specific concerns, or symptoms..."
-              className="w-full p-4 rounded-xl bg-[#1400A9] border border-[#A5A6FF]/30 text-white placeholder-[#A5A6FF] focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] resize-none select-text cursor-text"
+              className="w-full p-4 rounded-xl bg-[#1400A9] border border-[#A5A6FF]/30 text-white placeholder-[#A5A6FF] focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] resize-none select-text cursor-text disabled:opacity-50"
               autoComplete="off"
               spellCheck="false"
             />
@@ -128,16 +197,32 @@ export const PatientForm: React.FC = () => {
             <button
               type="submit"
               disabled={!medications.trim() || isLoading}
-              className={`submit-button w-full py-4 rounded-xl font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] text-[1.5rem] flex items-center justify-center gap-3 ${medications.trim() && !isLoading
+              className={`submit-button w-full py-4 rounded-xl font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] text-[1.5rem] flex items-center justify-center gap-3 ${
+                medications.trim() && !isLoading
                   ? 'bg-[#A5A6FF] border border-[#A5A6FF]/30 text-[#1400A9] hover:bg-white hover:text-[#1400A9] cursor-pointer'
                   : 'bg-gray-600/50 border border-gray-600/30 text-gray-400 cursor-not-allowed opacity-60'
-                }`}
+              }`}
             >
               {isLoading ? (
                 <>
-                  <svg className="animate-spin h-6 w-6 text-[#1400A9]" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  <svg
+                    className="animate-spin h-6 w-6 text-[#1400A9]"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8H4z"
+                    />
                   </svg>
                   <span>Analyzing Regimen...</span>
                 </>
