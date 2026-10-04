@@ -1,7 +1,7 @@
 // App.tsx
 import { useState } from 'react';
 import './App.css';
-import { Nav, type UserRole } from './components/Nav';
+import { Nav } from './components/Nav';
 import { PatientForm } from './components/PatientForm';
 import { ResultsDashboard } from './components/ResultsDashboard';
 import { type AnalysisResponse } from './services/api';
