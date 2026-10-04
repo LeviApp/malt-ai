@@ -7,7 +7,6 @@ import { ResultsDashboard } from './components/ResultsDashboard';
 import { type AnalysisResponse } from './services/api';
 
 function App() {
-  const [selectedRole, setSelectedRole] = useState<UserRole>('doctor');
   const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
 
   const handleSuccess = (results: AnalysisResponse) => {
@@ -20,19 +19,13 @@ function App() {
 
   return (
     <>
-      <Nav
-        selectedRole={selectedRole}
-        onRoleChange={setSelectedRole}
-        showToggle={Boolean(analysis)}
-      />
+      <Nav />
       {!analysis ? (
         <PatientForm onSubmitSuccess={handleSuccess} />
       ) : (
         <ResultsDashboard
           data={analysis}
           onReset={handleReset}
-          activeRole={selectedRole}
-          onRoleChange={setSelectedRole}
         />
       )}
     </>
