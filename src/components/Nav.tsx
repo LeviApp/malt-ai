@@ -8,19 +8,9 @@ export type UserRole = 'doctor' | 'patient';
 interface NavProps {
   selectedRole?: UserRole;
   onRoleChange?: (role: UserRole) => void;
-  showToggle?: boolean; // Controls visibility of the role toggle
 }
 
-export const Nav: React.FC<NavProps> = ({
-  selectedRole = 'doctor',
-  onRoleChange,
-  showToggle = true,
-}) => {
-  const handleToggle = (role: UserRole) => {
-    if (onRoleChange) {
-      onRoleChange(role);
-    }
-  };
+export const Nav: React.FC<NavProps> = () => {
   const [showMobileTooltip, setShowMobileTooltip] = useState(false);
 
   return (

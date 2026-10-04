@@ -1,28 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { type AnalysisResponse } from '../services/api';
-import { type UserRole } from './Nav';
 import { SeverityBadge } from './SeverityBadge';
 
 interface ResultsDashboardProps {
     data: AnalysisResponse;
     onReset?: () => void;
-    activeRole?: UserRole;
-    onRoleChange?: (role: UserRole) => void;
 }
 
 export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
     data,
     onReset,
-    activeRole = 'doctor',
-    onRoleChange,
 }) => {
-    const activeTab = activeRole === 'doctor' ? 'clinical' : 'patient';
-
-    const handleTabClick = (tab: 'clinical' | 'patient') => {
-        if (onRoleChange) {
-            onRoleChange(tab === 'clinical' ? 'doctor' : 'patient');
-        }
-    };
+    const [activeTab, setActiveTab] = useState<'clinical' | 'patient'>('clinical');
 
     const { medicationAnalyses = [], regimenInteractionNotes = [] } = data || {};
 
@@ -112,7 +101,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             <div className="flex items-center justify-start flex-wrap print:hidden">
                 <button
                     type="button"
-                    onClick={() => handleTabClick('clinical')}
+                    onClick={() => setActiveTab('clinical')}
                     className={`px-5 py-2 rounded-l-lg text-sm font-semibold transition-all cursor-pointer ${activeTab === 'clinical'
                         ? 'bg-white text-[#1400A9]'
                         : 'text-[#1400A9] bg-[#A5A6FF] hover:bg-white'
@@ -122,7 +111,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                 </button>
                 <button
                     type="button"
-                    onClick={() => handleTabClick('patient')}
+                    onClick={() => setActiveTab('patient')}
                     className={`px-5 py-2 rounded-r-lg text-sm font-semibold transition-all cursor-pointer ${activeTab === 'patient'
                         ? 'bg-white text-[#1400A9]'
                         : 'text-[#1400A9] bg-[#A5A6FF] hover:bg-white'
@@ -133,15 +122,15 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             </div>
 
             {/* Case Context Banner */}
-            {data.inputSummary && (
-                <div className="p-4 rounded-xl text-s text-white print:p-1.5 print:my-0.5 print:text-[8.5pt] print:leading-tight print:text-black print:border print:border-gray-200 print:rounded-lg print:bg-gray-50/50 print-keep-together">
-                    <strong className="text-white print:text-gray-900 uppercase tracking-wider text-s print:text-[7.5pt]">
+            {data?.inputSummary && (
+                <div className="p-4 rounded-xl text-white print:p-1.5 print:my-0.5 print:text-[8.5pt] print:leading-tight print:text-black print:border print:border-gray-200 print:rounded-lg print:bg-gray-50/50 print-keep-together">
+                    <strong className="text-white print:text-gray-900 uppercase tracking-wider">
                         {activeTab === 'patient' ? 'Information Reviewed:' : 'Case Context:'}
                     </strong>{' '}
                     <span className="text-slate-200 print:text-gray-800">
                         {activeTab === 'patient'
-                            ? data.inputSummary.patientFriendly
-                            : data.inputSummary.clinical}
+                            ? data?.inputSummary.patientFriendly
+                            : data?.inputSummary.clinical}
                     </span>
                 </div>
             )}
@@ -195,7 +184,11 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                                 <div className="pl-3 border-l-2 border-[#A5A6FF]/60 print:border-indigo-400 my-1">
                                     <span className="text-xs sm:text-sm text-slate-200 print:text-gray-700">
                                         <strong className="text-white print:text-gray-900">Switch Reason: </strong>
-                                        Development of adverse drug reactions, specifically chronic dry cough...
+                                        {typeof item.reasonForSwitch === 'string'
+                                            ? item.reasonForSwitch
+                                            : activeTab === 'clinical'
+                                                ? item.reasonForSwitch.clinical
+                                                : item.reasonForSwitch.patientFriendly}
                                     </span>
                                 </div>
                             )}
@@ -246,9 +239,11 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                                                     <strong className="text-emerald-400 print:text-emerald-900">
                                                         Rationale:{' '}
                                                     </strong>
-                                                    {activeTab === 'clinical'
-                                                        ? alt.whyItIsTheBestAlternative.clinical
-                                                        : alt.whyItIsTheBestAlternative.patientFriendly}
+                                                    {typeof alt.whyItIsTheBestAlternative === 'string'
+                                                        ? alt.whyItIsTheBestAlternative
+                                                        : activeTab === 'clinical'
+                                                            ? alt.whyItIsTheBestAlternative?.clinical
+                                                            : alt.whyItIsTheBestAlternative?.patientFriendly}
                                                 </p>
                                             )}
 
@@ -309,9 +304,11 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                                             </div>
                                             {alt.whyItIsTheBestAlternative && (
                                                 <p className="text-sm text-slate-200 print:text-[8pt] print:text-gray-800 print:leading-tight">
-                                                    {activeTab === 'clinical'
-                                                        ? alt.whyItIsTheBestAlternative.clinical
-                                                        : alt.whyItIsTheBestAlternative.patientFriendly}
+                                                    {typeof alt.whyItIsTheBestAlternative === 'string'
+                                                        ? alt.whyItIsTheBestAlternative
+                                                        : activeTab === 'clinical'
+                                                            ? alt.whyItIsTheBestAlternative?.clinical
+                                                            : alt.whyItIsTheBestAlternative?.patientFriendly}
                                                 </p>
                                             )}
                                         </div>
@@ -352,9 +349,11 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                                                     {avoid.drugOrClass}:{' '}
                                                 </span>
                                                 <span className="text-sm text-slate-200 print:text-[8pt] print:text-gray-800">
-                                                    {activeTab === 'clinical'
-                                                        ? avoid.reasonToAvoid?.clinical
-                                                        : avoid.reasonToAvoid?.patientFriendly}
+                                                    {typeof avoid.reasonToAvoid === 'string'
+                                                        ? avoid.reasonToAvoid
+                                                        : activeTab === 'clinical'
+                                                            ? avoid.reasonToAvoid?.clinical
+                                                            : avoid.reasonToAvoid?.patientFriendly}
                                                 </span>
                                             </div>
 
