@@ -63,8 +63,7 @@ export interface AnalysisResponse {
 
 
 // Ensure this matches your Express backend URL & port
-const API_BASE_URL = 'http://localhost:5001/api';
-
+const API_BASE_URL = import.meta.env.VITE_MALT_API_URL || 'http://localhost:5001/api';
 /**
  * Sends patient medication and case details to the backend for AI analysis.
  */
