@@ -10,7 +10,7 @@ export const SeverityBadge: React.FC<SeverityBadgeProps> = ({ severity, isPatien
 
     if (normalized.includes('contraindicated')) {
         return (
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs print:text-[7.5pt] font-bold text-red-400 print:text-red-800 shrink-0">
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs print:text-[7.5pt] font-bold text-red-400 print:text-red-950 shrink-0">
                 {isPatientMode ? '🛑 Do Not Take' : 'Contraindicated'}
             </span>
         );
@@ -18,7 +18,7 @@ export const SeverityBadge: React.FC<SeverityBadgeProps> = ({ severity, isPatien
 
     if (normalized.includes('major')) {
         return (
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs print:text-[7.5pt] font-bold text-orange-400 print:text-orange-400 print:border-orange-400 shrink-0">
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs print:text-[7.5pt] font-bold text-orange-400 print:text-amber-950 shrink-0">
                                                     <svg
                                         className="w-4 h-4 text-xs text-orange-400 print:w-3 print:h-3 print:text-orange-400"
                                         fill="none"
@@ -38,7 +38,7 @@ export const SeverityBadge: React.FC<SeverityBadgeProps> = ({ severity, isPatien
     }
 
     return (
-        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs print:text-[7.5pt] font-bold bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 print:bg-yellow-100 print:text-yellow-800 print:border-yellow-400 shrink-0">
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs print:text-[7.5pt] font-bold text-yellow-400 print:text-amber-900 shrink-0">
             {isPatientMode ? '⚡ Use With Caution' : severity}
         </span>
     );
