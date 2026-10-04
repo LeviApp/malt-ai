@@ -42,12 +42,17 @@ export interface MedicationAnalysis {
   secondaryAlternatives?: AlternativeMedication[];
 }
 
+export interface InputSummary {
+    clinical: string;        // e.g., "65yo M w/ HTN, CKD Stage 3. Current regimen: Lisinopril 20mg, Amlodipine 5mg."
+    patientFriendly: string; // e.g., "Summary of medications & health details provided for this review."
+}
 export interface AnalysisResponse {
   isValidInput: boolean;
   meta: {
     timestamp: string;
     model: string;
   };
+  inputSummary?: InputSummary;
   medicationAnalyses: MedicationAnalysis[];
   regimenInteractionNotes: DualExplanation[];
   
@@ -55,6 +60,7 @@ export interface AnalysisResponse {
   validationError?: string;
   error?: string;
 }
+
 
 // Ensure this matches your Express backend URL & port
 const API_BASE_URL = 'http://localhost:5001/api';
