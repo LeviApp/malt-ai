@@ -15,8 +15,15 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 
     const { medicationAnalyses = [], regimenInteractionNotes = [] } = data || {};
 
-    const isEmergency = data?.meta?.model === 'client-emergency-intercept' || 
-                        regimenInteractionNotes.some(n => n.clinical?.includes('CRITICAL TRAUMA INTERCEPT'));
+const isEmergency = 
+    data?.meta?.model === 'client-emergency-intercept' || 
+    regimenInteractionNotes.some(n => 
+        n.clinical?.includes('CRITICAL TRAUMA INTERCEPT') ||
+        n.clinical?.toLowerCase().includes('call 911') ||
+        n.patientFriendly?.toLowerCase().includes('call 911')
+    ) ||
+    // Catch-all: Guard #1 produces an empty medication array with emergency notes
+    (medicationAnalyses.length === 0 && regimenInteractionNotes.length > 0);
 
     const handlePrint = () => {
         window.print();
