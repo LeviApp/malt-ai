@@ -69,8 +69,8 @@ export const CRITICAL_EMERGENCY_KEYWORDS = [
 ];
 
 // Helper function to evaluate inputs against emergency patterns
-export function isAcuteEmergencyInput(medications: string = '', caseDetails: string = ''): boolean {
-  const text = `${medications} ${caseDetails}`.toLowerCase();
+export function isAcuteEmergencyInput(medications: string = '', allergies: string = '', caseDetails: string = ''): boolean {
+  const text = `${medications} ${allergies} ${caseDetails}`.toLowerCase();
 
   // 1. Direct check against high-precision keyword array
   const hasExactKeyword = CRITICAL_EMERGENCY_KEYWORDS.some((term) => text.includes(term));
@@ -98,7 +98,7 @@ export async function analyzePatientCase(data: AnalysisRequest): Promise<Analysi
   // ---------------------------------------------------------------------------
   // 1. CALL ISACUTEEMERGENCYINPUT HERE (Client-Side Intercept)
   // ---------------------------------------------------------------------------
-  if (isAcuteEmergencyInput(data.medications, data.caseDetails)) {
+  if (isAcuteEmergencyInput(data.medications, data.allergies, data.caseDetails)) {
     return {
       isValidInput: true,
       inputSummary: {
