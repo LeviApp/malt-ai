@@ -1,14 +1,16 @@
 import React from 'react';
 
 interface MedicalNoticeProps {
-  /** Optional custom Tailwind classes to append if needed */
+  /** Custom responsiveness or layout classes */
   className?: string;
 }
 
-export const MedicalNotice: React.FC<MedicalNoticeProps> = ({ className = '' }) => {
+export const MedicalNotice: React.FC<MedicalNoticeProps> = ({
+  className = 'flex md:hidden p-3 sm:p-4 m-5',
+}) => {
   return (
     <div
-      className={`flex md:hidden p-3 sm:p-4 m-5 rounded-xl border border-amber-500 text-amber-200 items-start gap-2.5 sm:gap-3 text-xs sm:text-sm leading-relaxed ${className}`}
+      className={`rounded-xl border border-amber-500 text-amber-200 items-start gap-2.5 sm:gap-3 text-xs sm:text-sm md:text-base leading-relaxed ${className}`}
     >
       <svg
         className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 shrink-0 mt-0.5"
