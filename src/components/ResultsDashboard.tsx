@@ -98,7 +98,7 @@ const isEmergency =
                                 </button>
                             )}
                             <a
-                                href="tel:3039088029"
+                                href="tel:911"
                                 className="px-6 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black tracking-wider text-base uppercase transition-all shadow-lg flex items-center gap-2 cursor-pointer"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
