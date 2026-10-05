@@ -5,6 +5,7 @@ import { Nav } from './components/Nav';
 import { PatientForm } from './components/PatientForm';
 import { ResultsDashboard } from './components/ResultsDashboard';
 import { type AnalysisResponse } from './services/api';
+import MedicalNotice from './components/MedicalNotice';
 
 function App() {
   const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
@@ -20,6 +21,7 @@ function App() {
   return (
     <>
       <Nav />
+      <MedicalNotice /> {/* Displays below Nav on mobile (< 768px), hidden on desktop */}
       {!analysis ? (
         <PatientForm onSubmitSuccess={handleSuccess} />
       ) : (
