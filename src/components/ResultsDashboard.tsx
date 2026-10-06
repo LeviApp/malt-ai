@@ -15,15 +15,8 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 
     const { medicationAnalyses = [], regimenInteractionNotes = [] } = data || {};
 
-const isEmergency = 
-    data?.meta?.model === 'client-emergency-intercept' || 
-    regimenInteractionNotes.some(n => 
-        n.clinical?.includes('CRITICAL TRAUMA INTERCEPT') ||
-        n.clinical?.toLowerCase().includes('call 911') ||
-        n.patientFriendly?.toLowerCase().includes('call 911')
-    ) ||
-    // Catch-all: Guard #1 produces an empty medication array with emergency notes
-    (medicationAnalyses.length === 0 && regimenInteractionNotes.length > 0);
+    const isEmergency = data?.isEmergency ?? false;
+    const isHighAcuity = data?.isHighAcuity ?? false;
 
     const handlePrint = () => {
         window.print();
@@ -59,53 +52,58 @@ const isEmergency =
 
             {/* 🚨 PROMINENT EMERGENCY BANNER */}
             {isEmergency ? (
-                <div className="p-6 sm:p-8 rounded-2xl bg-red-950/90 border-4 border-red-500 shadow-2xl shadow-red-900/50 flex flex-col gap-6 animate-pulse-subtle print:border-red-600 print:bg-red-50 print:text-black">
-                    <div className="flex items-center gap-3 border-b border-red-500/30 pb-4">
-                        <svg className="w-8 h-8 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                // --- 🚨 EMERGENCY / URGENT CARD (Handles both Critical 911 & Minor First Aid/Urgent Care) ---
+                <div className={`p-6 sm:p-8 rounded-2xl border-4 shadow-2xl flex flex-col gap-6 transition-all ${isHighAcuity
+                        ? 'bg-red-950/90 border-red-500 shadow-red-900/50 animate-pulse-subtle print:border-red-600 print:bg-red-50'
+                        : 'bg-slate-900/90 border-amber-500/80 shadow-amber-900/30 print:border-amber-500 print:bg-amber-50/80'
+                    }`}>
+                    {/* Header Icon & Title */}
+                    <div className={`flex items-center gap-3 border-b pb-4 ${isHighAcuity ? 'border-red-500/30' : 'border-amber-500/30'}`}>
+                        <svg className={`w-8 h-8 shrink-0 ${isHighAcuity ? 'text-red-500' : 'text-amber-400 print:text-amber-700'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
                         <div>
-                            <h3 className="text-2xl font-extrabold text-red-400 tracking-wide uppercase print:text-red-800">
-                                Emergency Medical Alert
+                            <h3 className={`text-2xl font-extrabold tracking-wide uppercase ${isHighAcuity ? 'text-red-400 print:text-red-800' : 'text-amber-300 print:text-amber-900'}`}>
+                                {isHighAcuity ? 'Emergency Medical Alert' : 'First Aid & Urgent Guidance'}
                             </h3>
-                            <p className="text-xs text-red-300 font-medium print:text-red-700">
-                                Immediate action required
-                            </p>
                         </div>
                     </div>
 
+                    {/* Guidance Text */}
                     <div className="space-y-3">
                         {regimenInteractionNotes.map((note, idx) => (
-                            <p key={idx} className="text-lg sm:text-xl font-bold text-white leading-relaxed print:text-red-950">
-                                {activeTab === 'clinical' ? note.clinical : note.patientFriendly}
+                            <p key={idx} className={`text-base sm:text-lg font-normal leading-relaxed ${isHighAcuity ? 'text-red-100/90 print:text-red-950' : 'text-slate-200 print:text-slate-900'}`}>
+                                {note.patientFriendly}
                             </p>
                         ))}
                     </div>
 
-                    <div className="pt-2 flex flex-wrap gap-4 items-center justify-between border-t border-red-500/30">
-                        <span className="text-sm text-red-200 font-semibold print:text-red-900">
-                            Outpatient medication analysis is strictly non-actionable for acute emergencies.
-                        </span>
-                        
-                        <div className="flex items-center gap-3 print:hidden">
+                    {/* Action Buttons (Conditionally shows 911 only for high acuity) */}
+                    <div className={`pt-2 flex flex-wrap gap-4 items-center justify-between border-t ${isHighAcuity ? 'border-red-500/30' : 'border-amber-500/30'}`}>
+                        <div className="flex items-center gap-3">
                             {onReset && (
                                 <button
                                     type="button"
                                     onClick={onReset}
-                                    className="px-5 py-3 rounded-xl bg-red-900/80 hover:bg-red-800 text-red-100 font-semibold text-sm border border-red-500/40 transition-all cursor-pointer"
+                                    className={`px-5 py-3 rounded-xl font-semibold text-sm border transition-all cursor-pointer print:hidden ${isHighAcuity
+                                            ? 'bg-red-900/80 hover:bg-red-800 text-red-100 border-red-500/40'
+                                            : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                                        }`}
                                 >
                                     Start New Analysis
                                 </button>
                             )}
-                            <a
-                                href="tel:911"
-                                className="px-6 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black tracking-wider text-base uppercase transition-all shadow-lg flex items-center gap-2 cursor-pointer"
-                            >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1.01 1.01 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                </svg>
-                                CALL 911 NOW!
-                            </a>
+                            {isHighAcuity && (
+                                <a
+                                    href="tel:911"
+                                    className="px-6 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black tracking-wider text-base uppercase transition-all shadow-lg flex items-center gap-2 cursor-pointer print:hidden"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1.01 1.01 0 011.21-.502l4.493 1.498a1.1 1.1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                    </svg>
+                                    CALL 911 NOW!
+                                </a>
+                            )}
                         </div>
                     </div>
                 </div>

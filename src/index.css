@@ -47,12 +47,7 @@ label {
   color: white;
 }
 
-.submit-button:disabled {
+button:disabled {
+  opacity: 0.5;
   pointer-events: none;
-  opacity: 50%;
-}
-
-.medications-label::after {
-  color: red;
-  content: " *"
 }
