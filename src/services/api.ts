@@ -70,7 +70,7 @@ export const CRITICAL_EMERGENCY_KEYWORDS = [
 // Main API Service Function
 export async function analyzePatientCase(data: AnalysisRequest): Promise<AnalysisResponse> {
   try {
-    const apiKey = import.meta.env.VITE_API_SECRET_KEY; 
+    const apiKey = import.meta.env.VITE_API_FINGERPRINT; 
     const response = await fetch(`${API_BASE_URL}/analyze`, {
       method: 'POST',
       headers: {
