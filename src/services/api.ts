@@ -69,14 +69,13 @@ export const CRITICAL_EMERGENCY_KEYWORDS = [
 
 // Main API Service Function
 export async function analyzePatientCase(data: AnalysisRequest): Promise<AnalysisResponse> {
-  // ---------------------------------------------------------------------------
-  // 1. STANDARD FLOW (Server Request)
-  // ---------------------------------------------------------------------------
   try {
+    const apiKey = import.meta.env.VITE_API_SECRET_KEY; 
     const response = await fetch(`${API_BASE_URL}/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'x-api-key': apiKey
       },
       body: JSON.stringify(data),
     });
@@ -101,7 +100,8 @@ export async function analyzePatientCase(data: AnalysisRequest): Promise<Analysi
   } catch (error: any) {
     console.error('API Error in analyzePatientCase:', error);
     
-    if (error instanceof TypeError && error.message.includes('Fetch')) {
+    // Catch standard browser network connection failures
+    if (error instanceof TypeError || error?.message?.toLowerCase().includes('fetch')) {
       throw new Error('Unable to reach backend server. Please verify Express server is running on port 5001.');
     }
     
