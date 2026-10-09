@@ -51,8 +51,3 @@ label {
   pointer-events: none;
   opacity: 50%;
 }
-
-.medications-label::after {
-  color: red;
-  content: " *"
-}

@@ -34,6 +34,10 @@ export const PatientForm: React.FC<PatientFormProps> = ({
   // Destructure for easy variable access anywhere in the component
   const { medications, allergies, caseDetails } = formData;
 
+  const areAllInputsEmpty = () => {
+    return !medications.trim() && !allergies.trim() && !caseDetails.trim();
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -41,7 +45,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!medications.trim() || isLoading) return;
+    if (areAllInputsEmpty() || isLoading) return;
 
     setErrorMessage(null);
     setInternalLoading(true);
@@ -56,7 +60,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({
       const response = await analyzePatientCase(payload);
 
       // Handle successful validation and return data
-if (response && response.isValidInput !== false) {
+      if (response && response.isValidInput !== false) {
         if (onSubmitSuccess) {
           onSubmitSuccess(response);
         }
@@ -172,17 +176,16 @@ if (response && response.isValidInput !== false) {
           <div className="md:col-start-2">
             <button
               type="submit"
-              disabled={!medications.trim() || isLoading}
-              className={`submit-button w-full py-4 rounded-xl font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] text-[1.5rem] flex items-center justify-center gap-3 ${
-                medications.trim() && !isLoading
-                  ? 'bg-[#A5A6FF] border border-[#A5A6FF]/30 text-[#1400A9] hover:bg-white hover:text-[#1400A9] cursor-pointer'
-                  : 'bg-gray-600/50 border border-gray-600/30 text-gray-400 cursor-not-allowed opacity-60'
-              }`}
+              disabled={isLoading || areAllInputsEmpty()}
+              className={`submit-button w-full py-4 rounded-xl font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] text-[1.5rem] flex items-center justify-center gap-3 ${(!isLoading && !areAllInputsEmpty())
+                ? 'bg-[#A5A6FF] border border-[#A5A6FF]/30 text-[#1400A9] hover:bg-white hover:text-[#1400A9] cursor-pointer'
+                : 'bg-gray-600/50 border border-gray-600/30 text-gray-400 cursor-not-allowed opacity-60'
+                }`}
             >
               {isLoading ? (
                 <>
                   <svg
-                    className="animate-spin h-6 w-6 text-[#1400A9]"
+                    className="animate-spin h-6 w-6 text-[#A78BFA]"
                     viewBox="0 0 24 24"
                     fill="none"
                   >
@@ -194,13 +197,19 @@ if (response && response.isValidInput !== false) {
                       stroke="currentColor"
                       strokeWidth="4"
                     />
-                    <path
+                    <circle
                       className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8H4z"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      strokeDasharray="31.415"
+                      strokeDashoffset="20"
+                      strokeLinecap="round"
                     />
                   </svg>
-                  <span>Analyzing Regimen...</span>
+                  <span>Analyzing ...</span>
                 </>
               ) : (
                 'Analyze Alternatives'
