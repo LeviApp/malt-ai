@@ -4,18 +4,6 @@ export interface AnalysisRequest {
   caseDetails?: string;
 }
 
-export interface ClinicalAnalysis {
-  summary: string;
-  riskLevel: 'Low' | 'Moderate' | 'High';
-  interactions: string[];
-  recommendations: string[];
-}
-
-export interface PatientFriendlyAnalysis {
-  explanation: string;
-  keyTakeaways: string[];
-}
-
 export interface DualExplanation {
   clinical: string;
   patientFriendly: string;
@@ -43,11 +31,14 @@ export interface MedicationAnalysis {
 }
 
 export interface InputSummary {
-    clinical: string;        // e.g., "65yo M w/ HTN, CKD Stage 3. Current regimen: Lisinopril 20mg, Amlodipine 5mg."
-    patientFriendly: string; // e.g., "Summary of medications & health details provided for this review."
+    clinical: string;        
+    patientFriendly: string; 
 }
+
 export interface AnalysisResponse {
   isValidInput: boolean;
+  isEmergency?: boolean;     
+  isHighAcuity?: boolean;    
   meta: {
     timestamp: string;
     model: string;
@@ -61,18 +52,30 @@ export interface AnalysisResponse {
   error?: string;
 }
 
-
 // Ensure this matches your Express backend URL & port
 const API_BASE_URL = import.meta.env.VITE_MALT_API_URL || 'http://localhost:5001/api';
-/**
- * Sends patient medication and case details to the backend for AI analysis.
- */
+
+// High-precision emergency phrases
+export const CRITICAL_EMERGENCY_KEYWORDS = [
+  'gunshot', 'gun shot', 'bullet wound', 'stabbed', 'stabbing', 'stab wound', 
+  'massive hemorrhage', 'bleeding out', 'spurting blood', 'traumatic amputation',
+  'severe chest pain', 'crushing chest pain', 'cardiac arrest', 'heart attack',
+  'facial drooping', 'slurred speech', 'sudden numbness', 'sudden paralysis',
+  'cannot breathe', "can't breathe", 'unable to breathe', 'stop breathing',
+  'stopped breathing', 'choking', 'airway closing', 'anaphylactic shock',
+  'unresponsive', 'unconscious', 'passed out', 'active seizure', 'continuous seizure',
+  'overdose', 'poisoned', 'swallowed bleach', 'ingested poison', 'suicidal', 'poison'
+];
+
+// Main API Service Function
 export async function analyzePatientCase(data: AnalysisRequest): Promise<AnalysisResponse> {
   try {
+    const apiKey = import.meta.env.VITE_API_FINGERPRINT; 
     const response = await fetch(`${API_BASE_URL}/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'x-api-key': apiKey
       },
       body: JSON.stringify(data),
     });
@@ -84,13 +87,21 @@ export async function analyzePatientCase(data: AnalysisRequest): Promise<Analysi
       throw new Error(errorMessage);
     }
 
-    const result: AnalysisResponse = await response.json();
+    const rawResult = await response.json();
+
+    // Trust the explicit flags returned directly from the backend schema
+    const result: AnalysisResponse = {
+      ...rawResult,
+      isEmergency: rawResult.isEmergency ?? false,
+      isHighAcuity: rawResult.isHighAcuity ?? false,
+    };
+
     return result;
   } catch (error: any) {
     console.error('API Error in analyzePatientCase:', error);
     
-    // Pass clear message up to UI layer
-    if (error instanceof TypeError && error.message.includes('Fetch')) {
+    // Catch standard browser network connection failures
+    if (error instanceof TypeError || error?.message?.toLowerCase().includes('fetch')) {
       throw new Error('Unable to reach backend server. Please verify Express server is running on port 5001.');
     }
     

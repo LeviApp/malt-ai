@@ -45,16 +45,14 @@ export const PatientForm: React.FC<PatientFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (areAllInputsEmpty() || isLoading) return;
-
     setErrorMessage(null);
     setInternalLoading(true);
 
     try {
       const payload: AnalysisRequest = {
         medications: medications.trim(),
-        allergies: allergies.trim() || undefined,
-        caseDetails: caseDetails.trim() || undefined,
+        allergies: allergies.trim(),
+        caseDetails: caseDetails.trim(),
       };
 
       const response = await analyzePatientCase(payload);
@@ -176,11 +174,8 @@ export const PatientForm: React.FC<PatientFormProps> = ({
           <div className="md:col-start-2">
             <button
               type="submit"
-              disabled={isLoading || areAllInputsEmpty()}
-              className={`submit-button w-full py-4 rounded-xl font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] text-[1.5rem] flex items-center justify-center gap-3 ${(!isLoading && !areAllInputsEmpty())
-                ? 'bg-[#A5A6FF] border border-[#A5A6FF]/30 text-[#1400A9] hover:bg-white hover:text-[#1400A9] cursor-pointer'
-                : 'bg-gray-600/50 border border-gray-600/30 text-gray-400 cursor-not-allowed opacity-60'
-                }`}
+              disabled={isLoading ? true : false}
+              className={`submit-button w-full py-4 rounded-xl font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] text-[1.5rem] flex items-center justify-center gap-3 bg-[#A5A6FF] border border-[#A5A6FF]/30 text-[#1400A9] hover:bg-white hover:text-[#1400A9] cursor-pointer`}
             >
               {isLoading ? (
                 <>
@@ -189,6 +184,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({
                     viewBox="0 0 24 24"
                     fill="none"
                   >
+                    {/* Outer track ring */}
                     <circle
                       className="opacity-25"
                       cx="12"
@@ -197,15 +193,12 @@ export const PatientForm: React.FC<PatientFormProps> = ({
                       stroke="currentColor"
                       strokeWidth="4"
                     />
-                    <circle
+                    {/* Rotating arc segment - perfectly aligned to the same track */}
+                    <path
                       className="opacity-75"
-                      cx="12"
-                      cy="12"
-                      r="10"
+                      d="M12 2a10 10 0 0110 10"
                       stroke="currentColor"
                       strokeWidth="4"
-                      strokeDasharray="31.415"
-                      strokeDashoffset="20"
                       strokeLinecap="round"
                     />
                   </svg>
