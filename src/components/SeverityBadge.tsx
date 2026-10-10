@@ -38,7 +38,7 @@ export const SeverityBadge: React.FC<SeverityBadgeProps> = ({ severity, isPatien
     }
 
     return (
-        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs print:text-[7.5pt] font-bold text-yellow-400 print:text-amber-900 shrink-0">
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-sm print:text-[7.5pt] font-bold text-yellow-400 print:text-amber-900 shrink-0">
             {isPatientMode ? '⚡ Use With Caution' : severity}
         </span>
     );

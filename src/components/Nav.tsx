@@ -5,7 +5,7 @@ import MedicalNotice from './MedicalNotice';
 
 export const Nav: React.FC = () => {
   return (
-    <header className="p-5 md:mb-10 sticky flex flex-row justify-between items-center top-0 z-50 w-full bg-[#1400A9] print:bg-transparent print:static print:p-5 print:mb-4 print:border-b print:border-gray-300">
+    <header className="p-5 md:mb-10 sticky flex flex-col md:flex-row items-center justify-center md:justify-between top-0 z-50 w-full bg-[#1400A9] print:bg-transparent print:static print:p-5 print:mb-4 print:border-b print:border-gray-300">
       {/* Logos: Dark Mode for Screen, Light Mode for Print */}
       <img
         className="h-[clamp(5rem,6.5vw,6.5rem)] w-auto object-contain print:hidden"
