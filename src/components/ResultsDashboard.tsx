@@ -63,7 +63,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
                         <div>
-                            <h3 className={`text-2xl font-extrabold tracking-wide uppercase ${isHighAcuity ? 'text-red-400 print:text-red-800' : 'text-amber-300 print:text-amber-900'}`}>
+                            <h3 className={`md:grid-cols-2 text-2xl font-extrabold tracking-wide uppercase ${isHighAcuity ? 'text-red-400 print:text-red-800' : 'text-amber-300 print:text-amber-900'}`}>
                                 {isHighAcuity ? 'Emergency Medical Alert' : 'First Aid & Urgent Guidance'}
                             </h3>
                         </div>
@@ -87,7 +87,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                                     onClick={onReset}
                                     className={`px-5 py-3 rounded-xl font-semibold text-sm border transition-all cursor-pointer print:hidden ${isHighAcuity
                                             ? 'bg-red-900/80 hover:bg-red-800 text-red-100 border-red-500/40'
-                                            : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                                            : 'bg-amber-500/30 hover:bg-amber-400/50 text-amber-200 border-amber-500/40'
                                         }`}
                                 >
                                     Start New Analysis

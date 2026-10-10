@@ -180,7 +180,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({
               {isLoading ? (
                 <>
                   <svg
-                    className="animate-spin h-6 w-6 text-[#A78BFA]"
+                    className="animate-spin h-6 w-6 text-[#1400A9]"
                     viewBox="0 0 24 24"
                     fill="none"
                   >

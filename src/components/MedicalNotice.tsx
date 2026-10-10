@@ -6,7 +6,7 @@ interface MedicalNoticeProps {
 }
 
 export const MedicalNotice: React.FC<MedicalNoticeProps> = ({
-  className = 'flex md:hidden p-3 sm:p-4 m-5',
+  className = 'flex md:hidden p-3 sm:p-4 m-5 print:hidden',
 }) => {
   return (
     <div
