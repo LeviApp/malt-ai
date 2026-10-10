@@ -106,60 +106,63 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             ) : (
                 <>
                     {/* Top Header Actions */}
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#A5A6FF]/20 pb-6 print:border-gray-300 print:pb-1 print:mb-0.5 print:gap-0">
-                        <div>
-                            <h2 className="text-3xl font-extrabold tracking-tight text-white print:text-[11pt] print:font-bold print:text-gray-900">
-                                Analysis Results
-                            </h2>
-                            <p className="text-[#A5A6FF] text-sm mt-1 print:text-[7.5pt] print:text-gray-600 print:mt-0.5">
-                                AI-generated clinical analysis and patient-facing breakdown.
-                            </p>
-                        </div>
+                    <div className="flex flex-col gap-2 pb-2 print:pb-1">
+                        <div className="flex flex-row justify-between items-center gap-2 sm:gap-4">
+                            <div className="min-w-0">
+                                <h2 className="text-base sm:text-xl md:text-3xl font-extrabold tracking-tight text-white truncate print:text-[11pt] print:font-bold print:text-gray-900">
+                                    Analysis Results
+                                </h2>
+                            </div>
 
-                        <div className="flex items-center gap-3 print:hidden">
-                            <button
-                                type="button"
-                                onClick={handlePrint}
-                                className="px-4 py-2 rounded-xl bg-[#A5A6FF] text-[#1400A9] hover:bg-white text-sm font-medium transition-all flex items-center gap-2 cursor-pointer"
-                                title="Print or export analysis"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h10z"
-                                    />
-                                </svg>
-                                Print Summary
-                            </button>
-
-                            {onReset && (
+                            <div className="flex items-center gap-2 sm:gap-3 print:hidden shrink-0">
                                 <button
                                     type="button"
-                                    onClick={onReset}
-                                    className="px-5 py-2 rounded-xl bg-[#A5A6FF] text-[#1400A9] hover:bg-white font-medium transition-all text-sm flex items-center gap-2 cursor-pointer"
+                                    onClick={handlePrint}
+                                    className="px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-[#A5A6FF] text-[#1400A9] hover:bg-white text-[12px] min-[550px]:text-sm sm:text-sm font-medium transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap"
+                                    title="Print or export analysis"
                                 >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path
                                             strokeLinecap="round"
                                             strokeLinejoin="round"
                                             strokeWidth={2}
-                                            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h10z"
                                         />
                                     </svg>
-                                    Analyze Another Case
+                                    Print Summary
                                 </button>
-                            )}
+
+                                {onReset && (
+                                    <button
+                                        type="button"
+                                        onClick={onReset}
+                                        className="px-2.5 py-1.5 sm:px-5 sm:py-2 rounded-xl bg-[#A5A6FF] text-[#1400A9] hover:bg-white font-medium transition-all text-[12px] min-[550px]:text-sm sm:text-sm flex items-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap"
+                                    >
+                                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                                            />
+                                        </svg>
+                                        Analyze Another Case
+                                    </button>
+                                )}
+                            </div>
                         </div>
+
+                        <p className="text-[#A5A6FF] text-xs sm:text-sm print:text-[7.5pt] print:text-gray-600 print:mt-0.5">
+                            AI-generated clinical analysis and patient-facing breakdown.
+                        </p>
                     </div>
 
                     {/* Mode Switcher */}
-                    <div className="flex items-center justify-start flex-wrap print:hidden">
+                    <div className="w-full md:w-auto flex items-center print:hidden">
                         <button
                             type="button"
                             onClick={() => setActiveTab('clinical')}
-                            className={`px-5 py-2 rounded-l-lg text-sm font-semibold transition-all cursor-pointer ${activeTab === 'clinical'
+                            className={`flex-1 md:flex-initial text-center px-6 py-3 rounded-l-lg text-base md:text-sm font-semibold transition-all cursor-pointer ${activeTab === 'clinical'
                                 ? 'bg-white text-[#1400A9]'
                                 : 'text-[#1400A9] bg-[#A5A6FF] hover:bg-white'
                                 }`}
@@ -169,7 +172,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                         <button
                             type="button"
                             onClick={() => setActiveTab('patient')}
-                            className={`px-5 py-2 rounded-r-lg text-sm font-semibold transition-all cursor-pointer ${activeTab === 'patient'
+                            className={`flex-1 md:flex-initial text-center px-6 py-3 rounded-r-lg text-base md:text-sm font-semibold transition-all cursor-pointer ${activeTab === 'patient'
                                 ? 'bg-white text-[#1400A9]'
                                 : 'text-[#1400A9] bg-[#A5A6FF] hover:bg-white'
                                 }`}
@@ -227,19 +230,16 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                                 key={index}
                                 className="p-6 rounded-2xl bg-[#1400A9] border border-[#A5A6FF]/20 flex flex-col gap-6 print:p-2 print:gap-1.5 print:border-gray-300 print:bg-white print:text-black print:rounded-xl"
                             >
-                                {/* Target Drug Title Bar */}
+                                {/* Target Drug Title Bar - Adjusted width constraints for print */}
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-[#A5A6FF]/10 pb-4 print:border-gray-200 print:pb-1 print-keep-together">
-                                    {/* Target Drug: Expanded to give plenty of room for long drug names */}
-                                    <div className="shrink-0 max-w-[65%] print:max-w-[70%]">
+                                    <div className="shrink-0 max-w-[65%] print:max-w-[65%]">
                                         <span className="text-xs font-semibold uppercase tracking-wider text-[#A5A6FF] print:text-[7.5pt] print:text-indigo-800 print:font-bold">
                                             Target Drug #{index + 1}
                                         </span>
-                                        <h3 className="text-2xl font-bold text-white print:text-[10pt] print:font-bold print:text-gray-900 mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
+                                        <h3 className="text-2xl font-bold text-white print:text-[10pt] print:font-bold print:text-gray-900 mt-0.5 print:whitespace-nowrap print:overflow-hidden print:text-ellipsis">
                                             {item.targetDrug}
                                         </h3>
                                     </div>
-
-                                    {/* Switch Reason: Takes up the remaining space, styled smaller */}
                                     {item.reasonForSwitch && (
                                         <div className="pl-3 border-l-2 border-[#A5A6FF]/60 print:border-indigo-400 my-1 flex-1 min-w-0">
                                             <span className="text-xs sm:text-sm text-slate-200 print:text-[7pt] print:text-gray-700 block leading-tight">
@@ -254,7 +254,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                                     )}
                                 </div>
 
-{/* Primary Alternatives Wrapper */}
+                                {/* Primary Alternatives Wrapper - print:grid-cols-1 forces full width on print */}
                                 {item.primaryAlternatives && item.primaryAlternatives.length > 0 && (
                                     <div className="flex flex-col gap-4 print:gap-1 print-keep-together">
                                         <h4 className="text-lg font-bold text-emerald-400 print:text-[8.5pt] print:text-emerald-900 flex items-center gap-1.5">
@@ -273,19 +273,18 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                                             </svg>
                                             Primary Alternatives
                                         </h4>
-                                        {/* Changed print:grid-cols-2 to print:grid-cols-1 for full width */}
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print:grid-cols-1 print:gap-1.5">
+                                        <div className="grid grid-cols-1 gap-4 print:grid-cols-1 print:gap-1.5">
                                             {item.primaryAlternatives.map((alt, altIdx) => (
                                                 <div
                                                     key={altIdx}
                                                     className="p-4 rounded-xl bg-black border border-[#A5A6FF]/20 flex flex-col gap-3 print:p-1.5 print:gap-0.5 print:bg-emerald-50/40 print:border-emerald-300 print:border-l-4 print:border-l-emerald-600 print-keep-together"
                                                 >
-                                                    <div className="flex justify-between items-center border-b border-[#A5A6FF]/10 pb-2 print:border-emerald-200 print:pb-0.5">
+                                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-[#A5A6FF]/10 pb-2 print:border-emerald-200 print:pb-0.5">
                                                         <span className="font-bold text-lg text-white print:text-[8.5pt] print:text-emerald-950">
                                                             {alt.drugName}
                                                         </span>
                                                         {alt.drugClass && (
-                                                            <span className="text-xs px-2.5 py-1 rounded-md text-emerald-400 font-semibold print:px-1 print:py-0.5 print:text-[7pt] print:text-emerald-600">
+                                                            <span className="text-sm px-0 py-1 rounded-md text-emerald-400 font-semibold print:px-1 print:py-0.5 print:text-[7pt] print:text-emerald-600">
                                                                 {typeof alt.drugClass === 'string'
                                                                     ? alt.drugClass
                                                                     : activeTab === "patient"
@@ -324,7 +323,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                                     </div>
                                 )}
 
-                                {/* Secondary Alternatives Wrapper */}
+                                {/* Secondary Alternatives Wrapper - print:grid-cols-1 forces full width on print */}
                                 {item.secondaryAlternatives && item.secondaryAlternatives.length > 0 && (
                                     <div className="flex flex-col gap-4 print:gap-1 print-keep-together">
                                         <h4 className="text-lg font-bold text-yellow-400 print:text-[8.5pt] print:text-blue-900 flex items-center gap-1.5">
@@ -343,19 +342,18 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                                             </svg>
                                             Secondary Alternatives
                                         </h4>
-                                        {/* Changed print:grid-cols-2 to print:grid-cols-1 for full width */}
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print:grid-cols-1 print:gap-1.5">
+                                        <div className="grid grid-cols-1 gap-4 print:grid-cols-1 print:gap-1.5">
                                             {item.secondaryAlternatives.map((alt, altIdx) => (
                                                 <div
                                                     key={altIdx}
                                                     className="p-4 rounded-xl bg-black border border-[#A5A6FF]/10 flex flex-col gap-2 print:p-1.5 print:gap-0.5 print:bg-blue-50/30 print:border-blue-200 print:border-l-4 print:border-l-blue-500 print-keep-together"
                                                 >
-                                                    <div className="flex justify-between items-center border-b border-transparent print:border-blue-200 print:pb-0.5">
+                                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-transparent print:border-blue-200 print:pb-0.5">
                                                         <span className="font-bold text-base text-white print:text-[8.5pt] print:text-blue-950">
                                                             {alt.drugName}
                                                         </span>
                                                         {alt.drugClass && (
-                                                            <span className="text-xs px-2.5 py-1 rounded-md text-yellow-400 font-semibold print:px-1 print:py-0.5 print:text-[7pt] print:text-blue-500">
+                                                            <span className="text-sm px-0 py-1 rounded-md text-yellow-400 font-semibold print:px-1 print:py-0.5 print:text-[7pt] print:text-blue-500">
                                                                 {typeof alt.drugClass === 'string'
                                                                     ? alt.drugClass
                                                                     : activeTab === "patient"
@@ -380,60 +378,63 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                                 )}
 
                                 {/* Medications to Avoid Wrapper */}
-                                {item.medicationsToAvoid && item.medicationsToAvoid.length > 0 && (
-                                    <div className="flex flex-col gap-3 pt-2 print:gap-1 print:pt-0.5 print-keep-together">
-                                        <h4 className="text-lg font-bold text-red-400 print:text-[8.5pt] print:text-red-900 flex items-center gap-1.5">
-                                            <svg
-                                                className="w-5 h-5 text-red-400 print:w-3 print:h-3 print:text-red-700"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth={2}
-                                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                                                />
-                                            </svg>
-                                            Medications to Avoid / Contraindications
-                                        </h4>
+{/* Medications to Avoid Wrapper */}
+{item.medicationsToAvoid && item.medicationsToAvoid.length > 0 && (
+    <div className="flex flex-col gap-3 pt-2 print:gap-1 print:pt-0.5 print-keep-together">
+        <h4 className="text-lg font-bold text-red-400 print:text-[8.5pt] print:text-red-900 flex items-center gap-1.5">
+            <svg
+                className="w-5 h-5 text-red-400 print:w-3 print:h-3 print:text-red-700"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+            </svg>
+            Medications to Avoid / Contraindications
+        </h4>
 
-                                        <div className="space-y-3 print:space-y-1">
-                                            {item.medicationsToAvoid.map((avoid, avoidIdx) => (
-                                                <div
-                                                    key={avoidIdx}
-                                                    className="p-3.5 rounded-xl bg-black flex items-stretch gap-4 print:p-1.5 print:bg-red-50/70 print:border print:border-red-300 print:border-l-4 print:border-l-red-600 print-keep-together"
-                                                >
-                                                    <div className="flex-1 min-w-0">
-                                                        <span className="font-bold text-red-400 print:text-[8pt] print:text-red-950">
-                                                            {avoid.drugOrClass}:{' '}
-                                                        </span>
-                                                        <span className="text-sm text-slate-200 print:text-[8pt] print:text-gray-800">
-                                                            {typeof avoid.reasonToAvoid === 'string'
-                                                                ? avoid.reasonToAvoid
-                                                                : activeTab === 'clinical'
-                                                                    ? avoid.reasonToAvoid?.clinical
-                                                                    : avoid.reasonToAvoid?.patientFriendly}
-                                                        </span>
-                                                    </div>
+        <div className="space-y-3 print:space-y-1">
+            {item.medicationsToAvoid.map((avoid, avoidIdx) => (
+                <div
+                    key={avoidIdx}
+                    // Added print:flex-row so print goes side-by-side (matching desktop)
+                    className="p-3.5 rounded-xl bg-black flex flex-col md:flex-row print:flex-row items-stretch gap-3 md:gap-4 print:p-1.5 print:bg-red-50/70 print:border print:border-red-300 print:border-l-4 print:border-l-red-600 print-keep-together"
+                >
+                    {/* Details: Stacked on mobile, Left side on desktop AND print */}
+                    <div className="order-2 md:order-1 print:order-1 pt-3 border-t md:pt-0 md:border-t-0 print:pt-0 print:border-t-0 md:pr-4 print:pr-4 md:border-r print:border-r border-[#A5A6FF]/60 print:border-red-300 flex-1 min-w-0 flex items-center">
+                        <div>
+                            <span className="font-bold text-red-400 print:text-[8pt] print:text-red-950">
+                                {avoid.drugOrClass}:{' '}
+                            </span>
+                            <span className="text-sm text-slate-200 print:text-[8pt] print:text-gray-800">
+                                {typeof avoid.reasonToAvoid === 'string'
+                                    ? avoid.reasonToAvoid
+                                    : activeTab === 'clinical'
+                                        ? avoid.reasonToAvoid?.clinical
+                                        : avoid.reasonToAvoid?.patientFriendly}
+                            </span>
+                        </div>
+                    </div>
 
-                                                    {avoid.severity && (
-                                                        <>
-                                                            <div className="w-0 border-r border-[#A5A6FF]/60 my-0.5 shrink-0 print:border-red-300" />
-                                                            <div className="w-36 flex items-center justify-center shrink-0">
-                                                                <SeverityBadge
-                                                                    severity={avoid.severity}
-                                                                    isPatientMode={activeTab === 'patient'}
-                                                                />
-                                                            </div>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
+                    {avoid.severity && (
+                        /* Badge Slot: Top on mobile, Right side on desktop AND print */
+                        <div className="order-1 md:order-2 print:order-2 w-full md:w-36 print:w-36 flex items-center justify-center shrink-0">
+                            <SeverityBadge
+                                severity={avoid.severity}
+                                isPatientMode={activeTab === 'patient'}
+                            />
+                        </div>
+                    )}
+                </div>
+            ))}
+        </div>
+    </div>
+)}
                             </div>
                         ))}
                     </div>
