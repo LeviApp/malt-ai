@@ -21,7 +21,7 @@ function App() {
   };
 
   return (
-    <>
+    <div id="results-container">
       <Nav />
       <MedicalNotice /> {/* Displays below Nav on mobile (< 768px), hidden on desktop */}
       {!analysis ? (
@@ -32,7 +32,7 @@ function App() {
           onReset={handleReset}
         />
       )}
-    </>
+    </div>
   );
 }
 
