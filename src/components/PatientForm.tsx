@@ -34,9 +34,9 @@ export const PatientForm: React.FC<PatientFormProps> = ({
   // Destructure for easy variable access anywhere in the component
   const { medications, allergies, caseDetails } = formData;
 
-  // const areAllInputsEmpty = () => {
-  //   return !medications.trim() && !allergies.trim() && !caseDetails.trim();
-  // };
+  const areAllInputsEmpty = () => {
+    return !medications.trim() && !allergies.trim() && !caseDetails.trim();
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -174,7 +174,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({
           <div className="md:col-start-2">
             <button
               type="submit"
-              disabled={isLoading ? true : false}
+              disabled={(isLoading || areAllInputsEmpty()) ? true : false}
               className={`submit-button w-full py-4 rounded-xl font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] text-[1.5rem] flex items-center justify-center gap-3 bg-[#A5A6FF] border border-[#A5A6FF]/30 text-[#1400A9] hover:bg-white hover:text-[#1400A9] cursor-pointer`}
             >
               {isLoading ? (
