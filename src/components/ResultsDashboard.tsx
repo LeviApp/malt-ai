@@ -45,14 +45,21 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             // Mobile fallback: Open in a new tab so the native viewer handles the PDF
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
             if (isMobile) {
-                // Directly open the blob URL in a new window/tab for mobile
-                const opened = window.open(blobUrl, '_blank');
-                if (!opened) {
-                    // Fallback if popup blocker stops it
-                    window.location.href = blobUrl;
-                }
+                // Force direct navigation to blob for mobile handlers
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const dataUrl = e.target?.result as string; // <-- Added type assertion
+                    if (!dataUrl) return;
+                    const newWindow = window.open();
+                    if (newWindow) {
+                        newWindow.document.write(`<iframe src="${dataUrl}" style="width:100%; height:100%; border:none;"></iframe>`);
+                    } else {
+                        window.location.href = dataUrl;
+                    }
+                };
+                reader.readAsDataURL(blob);
             } else {
-                // Standard desktop download trigger
+                // Desktop download trigger
                 const now = new Date();
                 const datePart = now.toISOString().slice(0, 10);
                 const timePart = `${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
