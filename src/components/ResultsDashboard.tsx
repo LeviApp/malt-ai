@@ -18,8 +18,54 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
     const isEmergency = data?.isEmergency ?? false;
     const isHighAcuity = data?.isHighAcuity ?? false;
 
-    const handlePrint = () => {
-        window.print();
+    const handleDownloadPdf = async () => {
+        try {
+            // Grab the exact DOM HTML of your results container
+            const container = document.getElementById('results-container');
+            if (!container) {
+                alert("Results container not found!");
+                return;
+            }
+
+            const reportHTML = container.innerHTML;
+            const API_BASE_URL = import.meta.env.VITE_MALT_API_URL || 'http://localhost:5001/api';
+
+            // Send the HTML to your local backend server
+            const response = await fetch(`${API_BASE_URL}/generate-pdf`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    htmlContent: reportHTML
+                })
+            });
+
+            if (!response.ok) throw new Error('PDF generation failed');
+
+            // Convert the returned stream into a downloadable file blob
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            // Generate the dynamic filename based on active view and current date
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0]; // e.g., "2026-10-10"
+            const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-'); // e.g., "22-47-58"
+
+            const reportType = activeTab === 'patient' ? 'Patient-Summary' : 'Clinical-Summary';
+            const filename = `Malt-AI-${reportType}-d-${dateStr}-t-${timeStr}.pdf`;
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename; // <-- Added this line back!
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+        } catch (error) {
+            console.error("Export error:", error);
+            alert("Could not generate PDF. Make sure your backend server is running!");
+        }
     };
 
     return (
@@ -117,7 +163,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                             <div className="flex items-center gap-2 sm:gap-3 print:hidden shrink-0">
                                 <button
                                     type="button"
-                                    onClick={handlePrint}
+                                    onClick={handleDownloadPdf}
                                     className="px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-[#A5A6FF] text-[#1400A9] hover:bg-white text-[12px] min-[550px]:text-sm sm:text-sm font-medium transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap"
                                     title="Print or export analysis"
                                 >
@@ -126,10 +172,10 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                                             strokeLinecap="round"
                                             strokeLinejoin="round"
                                             strokeWidth={2}
-                                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h10z"
+                                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                                         />
                                     </svg>
-                                    Print Summary
+                                    Download PDF
                                 </button>
 
                                 {onReset && (
@@ -378,63 +424,63 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                                 )}
 
                                 {/* Medications to Avoid Wrapper */}
-{/* Medications to Avoid Wrapper */}
-{item.medicationsToAvoid && item.medicationsToAvoid.length > 0 && (
-    <div className="flex flex-col gap-3 pt-2 print:gap-1 print:pt-0.5 print-keep-together">
-        <h4 className="text-lg font-bold text-red-400 print:text-[8.5pt] print:text-red-900 flex items-center gap-1.5">
-            <svg
-                className="w-5 h-5 text-red-400 print:w-3 print:h-3 print:text-red-700"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-            >
-                <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-            </svg>
-            Medications to Avoid / Contraindications
-        </h4>
+                                {/* Medications to Avoid Wrapper */}
+                                {item.medicationsToAvoid && item.medicationsToAvoid.length > 0 && (
+                                    <div className="flex flex-col gap-3 pt-2 print:gap-1 print:pt-0.5 print-keep-together">
+                                        <h4 className="text-lg font-bold text-red-400 print:text-[8.5pt] print:text-red-900 flex items-center gap-1.5">
+                                            <svg
+                                                className="w-5 h-5 text-red-400 print:w-3 print:h-3 print:text-red-700"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                                />
+                                            </svg>
+                                            Medications to Avoid / Contraindications
+                                        </h4>
 
-        <div className="space-y-3 print:space-y-1">
-            {item.medicationsToAvoid.map((avoid, avoidIdx) => (
-                <div
-                    key={avoidIdx}
-                    // Added print:flex-row so print goes side-by-side (matching desktop)
-                    className="p-3.5 rounded-xl bg-black flex flex-col md:flex-row print:flex-row items-stretch gap-3 md:gap-4 print:p-1.5 print:bg-red-50/70 print:border print:border-red-300 print:border-l-4 print:border-l-red-600 print-keep-together"
-                >
-                    {/* Details: Stacked on mobile, Left side on desktop AND print */}
-                    <div className="order-2 md:order-1 print:order-1 pt-3 border-t md:pt-0 md:border-t-0 print:pt-0 print:border-t-0 md:pr-4 print:pr-4 md:border-r print:border-r border-[#A5A6FF]/60 print:border-red-300 flex-1 min-w-0 flex items-center">
-                        <div>
-                            <span className="font-bold text-red-400 print:text-[8pt] print:text-red-950">
-                                {avoid.drugOrClass}:{' '}
-                            </span>
-                            <span className="text-sm text-slate-200 print:text-[8pt] print:text-gray-800">
-                                {typeof avoid.reasonToAvoid === 'string'
-                                    ? avoid.reasonToAvoid
-                                    : activeTab === 'clinical'
-                                        ? avoid.reasonToAvoid?.clinical
-                                        : avoid.reasonToAvoid?.patientFriendly}
-                            </span>
-                        </div>
-                    </div>
+                                        <div className="space-y-3 print:space-y-1">
+                                            {item.medicationsToAvoid.map((avoid, avoidIdx) => (
+                                                <div
+                                                    key={avoidIdx}
+                                                    // Added print:flex-row so print goes side-by-side (matching desktop)
+                                                    className="p-3.5 rounded-xl bg-black flex flex-col md:flex-row print:flex-row items-stretch gap-3 md:gap-4 print:p-1.5 print:bg-red-50/70 print:border print:border-red-300 print:border-l-4 print:border-l-red-600 print-keep-together"
+                                                >
+                                                    {/* Details: Stacked on mobile, Left side on desktop AND print */}
+                                                    <div className="order-2 md:order-1 print:order-1 pt-3 border-t md:pt-0 md:border-t-0 print:pt-0 print:border-t-0 md:pr-4 print:pr-4 md:border-r print:border-r border-[#A5A6FF]/60 print:border-red-300 flex-1 min-w-0 flex items-center">
+                                                        <div>
+                                                            <span className="font-bold text-red-400 print:text-[8pt] print:text-red-950">
+                                                                {avoid.drugOrClass}:{' '}
+                                                            </span>
+                                                            <span className="text-sm text-slate-200 print:text-[8pt] print:text-gray-800">
+                                                                {typeof avoid.reasonToAvoid === 'string'
+                                                                    ? avoid.reasonToAvoid
+                                                                    : activeTab === 'clinical'
+                                                                        ? avoid.reasonToAvoid?.clinical
+                                                                        : avoid.reasonToAvoid?.patientFriendly}
+                                                            </span>
+                                                        </div>
+                                                    </div>
 
-                    {avoid.severity && (
-                        /* Badge Slot: Top on mobile, Right side on desktop AND print */
-                        <div className="order-1 md:order-2 print:order-2 w-full md:w-36 print:w-36 flex items-center justify-center shrink-0">
-                            <SeverityBadge
-                                severity={avoid.severity}
-                                isPatientMode={activeTab === 'patient'}
-                            />
-                        </div>
-                    )}
-                </div>
-            ))}
-        </div>
-    </div>
-)}
+                                                    {avoid.severity && (
+                                                        /* Badge Slot: Top on mobile, Right side on desktop AND print */
+                                                        <div className="order-1 md:order-2 print:order-2 w-full md:w-36 print:w-36 flex items-center justify-center shrink-0">
+                                                            <SeverityBadge
+                                                                severity={avoid.severity}
+                                                                isPatientMode={activeTab === 'patient'}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>

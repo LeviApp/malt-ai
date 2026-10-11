@@ -1,6 +1,6 @@
 import React from 'react';
-import darkLogo from '../assets/malt-ai-dm.png';
-import lightLogo from '../assets/malt-ai-lm.png';
+import darkModeLogo from '../assets/malt-ai-dm.png';
+import lightModeLogo from '../assets/malt-ai-lm.png';
 import MedicalNotice from './MedicalNotice';
 
 export const Nav: React.FC = () => {
@@ -9,12 +9,12 @@ export const Nav: React.FC = () => {
       {/* Logos: Dark Mode for Screen, Light Mode for Print */}
       <img
         className="h-[clamp(5rem,6.5vw,6.5rem)] w-auto object-contain print:hidden"
-        src={darkLogo}
+        src={darkModeLogo}
         alt="Malt AI Logo"
       />
       <img
         className="hidden print:block h-8 w-auto object-contain"
-        src={lightLogo}
+        src={`${window.location.origin}${lightModeLogo}`}
         alt="Malt AI Logo"
       />
 
