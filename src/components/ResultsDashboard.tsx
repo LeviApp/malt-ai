@@ -20,7 +20,6 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 
     const handleDownloadPdf = async () => {
         try {
-            // Grab the exact DOM HTML of your results container
             const container = document.getElementById('results-container');
             if (!container) {
                 alert("Results container not found!");
@@ -30,41 +29,41 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             const reportHTML = container.innerHTML;
             const API_BASE_URL = import.meta.env.VITE_MALT_API_URL || 'http://localhost:5001/api';
 
-            // Send the HTML to your local backend server
             const response = await fetch(`${API_BASE_URL}/generate-pdf`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    htmlContent: reportHTML
-                })
+                body: JSON.stringify({ reportHTML })
             });
 
-            if (!response.ok) throw new Error('PDF generation failed');
+            if (!response.ok) throw new Error('Failed to generate PDF');
 
-            // Convert the returned stream into a downloadable file blob
             const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
 
-            // Generate the dynamic filename based on active view and current date
-            const now = new Date();
-            const dateStr = now.toISOString().split('T')[0]; // e.g., "2026-10-10"
-            const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-'); // e.g., "22-47-58"
+            // Create a blob URL targeted for mobile viewing
+            const blobUrl = URL.createObjectURL(blob);
 
-            const reportType = activeTab === 'patient' ? 'Patient-Summary' : 'Clinical-Summary';
-            const filename = `Malt-AI-${reportType}-d-${dateStr}-t-${timeStr}.pdf`;
+            // Mobile fallback: Open in a new tab so the native viewer handles the PDF
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            if (isMobile) {
+                window.open(blobUrl, '_blank');
+            } else {
+                // Standard desktop download trigger with full date & time stamp
+                const now = new Date();
+                const datePart = now.toISOString().slice(0, 10);
+                const timePart = `${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
+                
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = `Malt-AI-Patient-Summary-d-${datePart}-t-${timePart}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
 
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename; // <-- Added this line back!
-
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-
-        } catch (error) {
-            console.error("Export error:", error);
-            alert("Could not generate PDF. Make sure your backend server is running!");
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+        } catch (err) {
+            console.error(err);
+            alert('Could not generate PDF. Make sure your backend server is running!');
         }
     };
 
