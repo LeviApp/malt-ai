@@ -34,6 +34,10 @@ export const PatientForm: React.FC<PatientFormProps> = ({
   // Destructure for easy variable access anywhere in the component
   const { medications, allergies, caseDetails } = formData;
 
+  // const areAllInputsEmpty = () => {
+  //   return !medications.trim() && !allergies.trim() && !caseDetails.trim();
+  // };
+
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
