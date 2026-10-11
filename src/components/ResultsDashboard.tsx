@@ -45,13 +45,25 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             // Mobile fallback: Open in a new tab so the native viewer handles the PDF
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
             if (isMobile) {
-                window.open(blobUrl, '_blank');
+                // Force direct navigation to blob for mobile handlers
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const dataUrl = e.target?.result as string; // <-- Added type assertion
+                    if (!dataUrl) return;
+                    const newWindow = window.open();
+                    if (newWindow) {
+                        newWindow.document.write(`<iframe src="${dataUrl}" style="width:100%; height:100%; border:none;"></iframe>`);
+                    } else {
+                        window.location.href = dataUrl;
+                    }
+                };
+                reader.readAsDataURL(blob);
             } else {
-                // Standard desktop download trigger with full date & time stamp
+                // Desktop download trigger
                 const now = new Date();
                 const datePart = now.toISOString().slice(0, 10);
                 const timePart = `${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
-                
+
                 const link = document.createElement('a');
                 link.href = blobUrl;
                 link.download = `Malt-AI-Patient-Summary-d-${datePart}-t-${timePart}.pdf`;
