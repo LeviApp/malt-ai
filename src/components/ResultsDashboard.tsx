@@ -12,7 +12,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
     onReset,
 }) => {
     const [activeTab, setActiveTab] = useState<'clinical' | 'patient'>('clinical');
-    const [pdfStatus, setPdfStatus] = useState<'idle' | 'generating' | 'success' | 'fail'>('fail');
+    const [pdfStatus, setPdfStatus] = useState<'idle' | 'generating' | 'success' | 'fail'>('idle');
     const { medicationAnalyses = [], regimenInteractionNotes = [] } = data || {};
     const isEmergency = data?.isEmergency ?? false;
     const isHighAcuity = data?.isHighAcuity ?? false;
