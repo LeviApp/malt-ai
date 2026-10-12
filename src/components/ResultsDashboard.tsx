@@ -169,109 +169,118 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             ) : (
                 <>
                     {/* Top Header Actions */}
-                    <div className="flex flex-col gap-2 pb-2 print:pb-1">
-                        <div className="flex flex-row justify-between items-center gap-2 sm:gap-4">
-                            <div className="min-w-0">
-                                <h2 className="text-base sm:text-xl md:text-3xl font-extrabold tracking-tight text-white truncate print:text-[11pt] print:font-bold print:text-gray-900">
-                                    Analysis Results
-                                </h2>
-                            </div>
+<div className="flex flex-col gap-2 pb-2 print:pb-1">
+    {/* Main Header Row: Title & Action Buttons side-by-side at >= 525px */}
+    <div className="flex flex-col min-[525px]:flex-row min-[525px]:justify-between min-[525px]:items-center gap-2 sm:gap-4">
 
-                            <div className="flex items-center gap-2 sm:gap-3 print:hidden shrink-0">
-                                <button
-                                    type="button"
-                                    onClick={handleDownloadPdf}
-                                    disabled={pdfStatus === 'generating'}
-                                    className={`px-2.5 py-1.5 sm:px-5 sm:py-2 rounded-xl transition-all flex items-center gap-1.5 sm:gap-2 font-medium whitespace-nowrap text-[12px] min-[550px]:text-sm sm:text-sm ${pdfStatus === 'success'
-                                            ? 'bg-emerald-100 text-emerald-800'
-                                            : pdfStatus === 'fail'
-                                                ? 'bg-rose-100 text-rose-800'
-                                                : pdfStatus === 'generating'
-                                                    ? 'bg-[#A5A6FF] text-[#1400A9] cursor-wait'
-                                                    : 'bg-[#A5A6FF] text-[#1400A9] hover:bg-white cursor-pointer'
-                                        }`}
-                                    title="Print or export analysis"
-                                >
-                                    {pdfStatus === 'success' ? (
-                                        // Success checkmark icon
-                                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    ) : pdfStatus === 'fail' ? (
-                                        // Error X icon
-                                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    ) : pdfStatus === 'generating' ? (
-                                        // Custom smooth spinner
-                                        <svg
-                                            className="animate-spin w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-[#1400A9]"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                        >
-                                            <circle
-                                                className="opacity-25"
-                                                cx="12"
-                                                cy="12"
-                                                r="10"
-                                                stroke="currentColor"
-                                                strokeWidth="4"
-                                            />
-                                            <path
-                                                className="opacity-75"
-                                                d="M12 2a10 10 0 0110 10"
-                                                stroke="currentColor"
-                                                strokeWidth="4"
-                                                strokeLinecap="round"
-                                            />
-                                        </svg>
-                                    ) : (
-                                        // Standard download icon
-                                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                                            />
-                                        </svg>
-                                    )}
+        {/* Main Title & Subtitle Grouping for < 525px */}
+        <div className="flex flex-col text-center min-[525px]:text-left min-w-0">
+            {/* Title with restored truncate class */}
+            <h2 className="text-2xl min-[525px]:text-lg sm:text-[1.2rem] md:text-3xl font-extrabold tracking-tight text-white truncate print:text-[11pt] print:font-bold print:text-gray-900">
+                Analysis Results
+            </h2>
+            {/* Subtitle sits right under title on screens under 525px */}
+            <p className="text-[#A5A6FF] text-sm min-[525px]:hidden mt-1 font-medium">
+                AI-generated clinical analysis and patient-facing breakdown.
+            </p>
+        </div>
 
-                                    {pdfStatus === 'generating'
-                                        ? 'Generating PDF ...'
-                                        : pdfStatus === 'success'
-                                            ? 'Downloaded!'
-                                            : pdfStatus === 'fail'
-                                                ? 'Failed!'
-                                                : 'Download PDF'}
-                                </button>
+        {/* Action Buttons: Full width flex container matching toggle bar below */}
+        <div className="flex items-center justify-between w-full min-[525px]:w-auto gap-2 sm:gap-3 print:hidden shrink-0 pt-1 min-[525px]:pt-0">
+            <button
+                type="button"
+                onClick={handleDownloadPdf}
+                disabled={pdfStatus === 'generating'}
+                className={`flex-1 min-[525px]:flex-none px-3 py-2 min-[525px]:px-2.5 min-[525px]:py-1.5 sm:px-5 sm:py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 sm:gap-2 font-medium whitespace-nowrap text-[13px] min-[550px]:text-sm sm:text-sm ${
+                    pdfStatus === 'success'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : pdfStatus === 'fail'
+                            ? 'bg-rose-100 text-rose-800'
+                            : pdfStatus === 'generating'
+                                ? 'bg-[#A5A6FF] text-[#1400A9] cursor-wait'
+                                : 'bg-[#A5A6FF] text-[#1400A9] hover:bg-white cursor-pointer'
+                }`}
+                title="Print or export analysis"
+            >
+                {pdfStatus === 'success' ? (
+                    <svg className="w-4 h-4 shrink-0 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                ) : pdfStatus === 'fail' ? (
+                    <svg className="w-4 h-4 shrink-0 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                ) : pdfStatus === 'generating' ? (
+                    <svg
+                        className="animate-spin w-4 h-4 shrink-0 text-[#1400A9]"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                    >
+                        <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                        />
+                        <path
+                            className="opacity-75"
+                            d="M12 2a10 10 0 0110 10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                            strokeLinecap="round"
+                        />
+                    </svg>
+                ) : (
+                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                        />
+                    </svg>
+                )}
 
-                                {onReset && (
-                                    <button
-                                        type="button"
-                                        onClick={onReset}
-                                        className="px-2.5 py-1.5 sm:px-5 sm:py-2 rounded-xl bg-[#A5A6FF] text-[#1400A9] hover:bg-white font-medium transition-all text-[12px] min-[550px]:text-sm sm:text-sm flex items-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap"
-                                    >
-                                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                                            />
-                                        </svg>
-                                        Analyze Another Case
-                                    </button>
-                                )}
-                            </div>
-                        </div>
+                {pdfStatus === 'generating'
+                    ? 'Generating PDF...'
+                    : pdfStatus === 'success'
+                        ? 'Downloaded!'
+                        : pdfStatus === 'fail'
+                            ? 'Failed!'
+                            : 'Download PDF'}
+            </button>
 
-                        <p className="text-[#A5A6FF] text-xs sm:text-sm print:text-[7.5pt] print:text-gray-600 print:mt-0.5">
-                            AI-generated clinical analysis and patient-facing breakdown.
-                        </p>
-                    </div>
+            {onReset && (
+                <button
+                    type="button"
+                    onClick={onReset}
+                    className="flex-1 min-[525px]:flex-none px-3 py-2 min-[525px]:px-2.5 min-[525px]:py-1.5 sm:px-5 sm:py-2 rounded-xl bg-[#A5A6FF] text-[#1400A9] hover:bg-white font-medium transition-all text-[13px] min-[550px]:text-sm sm:text-sm flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap"
+                >
+                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                        />
+                    </svg>
+                    Analyze Another Case
+                </button>
+            )}
+        </div>
+    </div>
 
+    {/* Subtitle placed full-width below the header row on screens 525px and up */}
+    <p className="hidden min-[525px]:block text-[#A5A6FF] text-sm sm:text-base print:text-[7.5pt] print:text-gray-600 print:mt-0.5">
+        AI-generated clinical analysis and patient-facing breakdown.
+    </p>
+</div>
+
+                    <hr className="border-t border-slate-700 my-3 print:hidden" />
                     {/* Mode Switcher */}
+
                     <div className="w-full md:w-auto flex items-center print:hidden">
                         <button
                             type="button"
