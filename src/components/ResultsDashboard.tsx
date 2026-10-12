@@ -12,17 +12,20 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
     onReset,
 }) => {
     const [activeTab, setActiveTab] = useState<'clinical' | 'patient'>('clinical');
-
+    const [pdfStatus, setPdfStatus] = useState<'idle' | 'generating' | 'success' | 'fail'>('fail');
     const { medicationAnalyses = [], regimenInteractionNotes = [] } = data || {};
-
     const isEmergency = data?.isEmergency ?? false;
     const isHighAcuity = data?.isHighAcuity ?? false;
 
     const handleDownloadPdf = async () => {
+        if (pdfStatus === 'generating') return;
+
         try {
+            setPdfStatus('generating');
             const container = document.getElementById('results-container');
             if (!container) {
                 alert("Results container not found!");
+                setPdfStatus('idle');
                 return;
             }
 
@@ -43,14 +46,11 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
             if (isMobile) {
-                // Directly open the blob URL in a new tab so the mobile OS / native PDF viewer takes over
                 const opened = window.open(blobUrl, '_blank');
                 if (!opened) {
-                    // Fallback if strict mobile popup blockers intercept it
                     window.location.href = blobUrl;
                 }
             } else {
-                // Desktop download trigger with full timestamp
                 const now = new Date();
                 const datePart = now.toISOString().slice(0, 10);
                 const timePart = `${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
@@ -64,9 +64,15 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             }
 
             setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+
+            // Trigger success state momentarily
+            setPdfStatus('success');
+            setTimeout(() => setPdfStatus('idle'), 2500);
+
         } catch (err) {
             console.error(err);
-            alert('Could not generate PDF. Make sure your backend server is running!');
+            setPdfStatus('fail');
+            setTimeout(() => setPdfStatus('idle'), 3500); // Reset back to idle after 3.5 seconds
         }
     };
 
@@ -166,18 +172,69 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                                 <button
                                     type="button"
                                     onClick={handleDownloadPdf}
-                                    className="px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-[#A5A6FF] text-[#1400A9] hover:bg-white text-[12px] min-[550px]:text-sm sm:text-sm font-medium transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap"
+                                    disabled={pdfStatus === 'generating'}
+                                    className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl transition-all flex items-center gap-1.5 sm:gap-2 font-medium whitespace-nowrap ${pdfStatus === 'success'
+                                            ? 'bg-emerald-100 text-emerald-800'
+                                            : pdfStatus === 'fail'
+                                                ? 'bg-rose-100 text-rose-800'
+                                                : pdfStatus === 'generating'
+                                                    ? 'bg-[#A5A6FF] text-[#1400A9] cursor-wait'
+                                                    : 'bg-[#A5A6FF] text-[#1400A9] hover:bg-white cursor-pointer'
+                                        }`}
                                     title="Print or export analysis"
                                 >
-                                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                                        />
-                                    </svg>
-                                    Download PDF
+                                    {pdfStatus === 'success' ? (
+                                        // Success checkmark icon
+                                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    ) : pdfStatus === 'fail' ? (
+                                        // Error X icon
+                                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    ) : pdfStatus === 'generating' ? (
+                                        // Custom smooth spinner
+                                        <svg
+                                            className="animate-spin w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-[#1400A9]"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                        >
+                                            <circle
+                                                className="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"
+                                            />
+                                            <path
+                                                className="opacity-75"
+                                                d="M12 2a10 10 0 0110 10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"
+                                                strokeLinecap="round"
+                                            />
+                                        </svg>
+                                    ) : (
+                                        // Standard download icon
+                                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                                            />
+                                        </svg>
+                                    )}
+
+                                    {pdfStatus === 'generating'
+                                        ? 'Generating PDF...'
+                                        : pdfStatus === 'success'
+                                            ? 'Downloaded!'
+                                            : pdfStatus === 'fail'
+                                                ? 'Failed!'
+                                                : 'Download PDF'}
                                 </button>
 
                                 {onReset && (
