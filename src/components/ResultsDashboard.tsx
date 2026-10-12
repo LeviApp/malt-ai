@@ -43,7 +43,7 @@ const handleDownloadPdf = async () => {
 
         const blob = await response.blob();
         
-        // Generate timestamp string
+        // Generate timestamp string for desktop use
         const now = new Date();
         const datePart = now.toISOString().slice(0, 10);
         const timePart = `${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
@@ -52,33 +52,26 @@ const handleDownloadPdf = async () => {
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
         if (isMobile) {
-            const file = new File([blob], fileName, { type: 'application/pdf' });
+            // For mobile & in-app browsers (like Facebook Messenger), convert to Data URL 
+            // and open it directly. This bypasses webview blocks and triggers the native viewer.
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const dataUrl = e.target?.result as string;
+                if (!dataUrl) {
+                    setPdfStatus('fail');
+                    setTimeout(() => setPdfStatus('idle'), 3500);
+                    return;
+                }
 
-            // Check if the device supports sharing files directly (Standard on modern Android/iOS)
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        files: [file],
-                        title: 'Patient Summary PDF',
-                        text: 'Here is your generated Malt AI patient summary.'
-                    });
-                } catch (shareErr) {
-                    // User canceled the share sheet, not an actual error
-                    if ((shareErr as Error).name !== 'AbortError') {
-                        console.error(shareErr);
-                    }
-                }
-            } else {
-                // Fallback for older mobile browsers: Open blob URL in a new tab viewer
-                const blobUrl = URL.createObjectURL(blob);
-                const opened = window.open(blobUrl, '_blank');
+                // Try opening in a new tab; fallback to changing window location if blocked
+                const opened = window.open(dataUrl, '_blank');
                 if (!opened) {
-                    window.location.href = blobUrl;
+                    window.location.href = dataUrl;
                 }
-                setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-            }
+            };
+            reader.readAsDataURL(blob);
         } else {
-            // Desktop download trigger
+            // Standard desktop download trigger
             const blobUrl = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = blobUrl;
