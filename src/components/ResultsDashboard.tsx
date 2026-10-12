@@ -52,20 +52,31 @@ const handleDownloadPdf = async () => {
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
         if (isMobile) {
-            // Android & Mobile: Convert blob to Data URL so mobile browsers recognize it as a downloadable file
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const dataUrl = e.target?.result as string;
-                if (!dataUrl) return;
+            const file = new File([blob], fileName, { type: 'application/pdf' });
 
-                const link = document.createElement('a');
-                link.href = dataUrl;
-                link.download = fileName;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            };
-            reader.readAsDataURL(blob);
+            // Check if the device supports sharing files directly (Standard on modern Android/iOS)
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: 'Patient Summary PDF',
+                        text: 'Here is your generated Malt AI patient summary.'
+                    });
+                } catch (shareErr) {
+                    // User canceled the share sheet, not an actual error
+                    if ((shareErr as Error).name !== 'AbortError') {
+                        console.error(shareErr);
+                    }
+                }
+            } else {
+                // Fallback for older mobile browsers: Open blob URL in a new tab viewer
+                const blobUrl = URL.createObjectURL(blob);
+                const opened = window.open(blobUrl, '_blank');
+                if (!opened) {
+                    window.location.href = blobUrl;
+                }
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+            }
         } else {
             // Desktop download trigger
             const blobUrl = URL.createObjectURL(blob);
@@ -78,7 +89,6 @@ const handleDownloadPdf = async () => {
             setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
         }
 
-        // Trigger success state momentarily
         setPdfStatus('success');
         setTimeout(() => setPdfStatus('idle'), 2500);
 
