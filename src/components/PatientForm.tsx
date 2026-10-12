@@ -175,7 +175,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({
             <button
               type="submit"
               disabled={(isLoading || areAllInputsEmpty()) ? true : false}
-              className={`submit-button w-full py-4 rounded-xl font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] text-[1.5rem] flex items-center justify-center gap-3 bg-[#A5A6FF] border border-[#A5A6FF]/30 text-[#1400A9] hover:bg-white hover:text-[#1400A9] cursor-pointer`}
+              className={`submit-button w-full py-4 mb-3 rounded-xl font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] text-[1.5rem] flex items-center justify-center gap-3 bg-[#A5A6FF] border border-[#A5A6FF]/30 text-[#1400A9] hover:bg-white hover:text-[#1400A9] cursor-pointer`}
             >
               {isLoading ? (
                 <>

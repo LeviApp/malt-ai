@@ -17,64 +17,77 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
     const isEmergency = data?.isEmergency ?? false;
     const isHighAcuity = data?.isHighAcuity ?? false;
 
-    const handleDownloadPdf = async () => {
-        if (pdfStatus === 'generating') return;
+const handleDownloadPdf = async () => {
+    if (pdfStatus === 'generating') return;
+    
+    try {
+        setPdfStatus('generating');
+        const container = document.getElementById('results-container');
+        if (!container) {
+            alert("Results container not found!");
+            setPdfStatus('fail');
+            setTimeout(() => setPdfStatus('idle'), 3500);
+            return;
+        }
 
-        try {
-            setPdfStatus('generating');
-            const container = document.getElementById('results-container');
-            if (!container) {
-                alert("Results container not found!");
-                setPdfStatus('idle');
-                return;
-            }
+        const reportHTML = container.innerHTML;
+        const API_BASE_URL = import.meta.env.VITE_MALT_API_URL || 'http://localhost:5001/api';
 
-            const reportHTML = container.innerHTML;
-            const API_BASE_URL = import.meta.env.VITE_MALT_API_URL || 'http://localhost:5001/api';
+        const response = await fetch(`${API_BASE_URL}/generate-pdf`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reportHTML })
+        });
 
-            const response = await fetch(`${API_BASE_URL}/generate-pdf`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ reportHTML })
-            });
+        if (!response.ok) throw new Error('Failed to generate PDF');
 
-            if (!response.ok) throw new Error('Failed to generate PDF');
+        const blob = await response.blob();
+        
+        // Generate timestamp string
+        const now = new Date();
+        const datePart = now.toISOString().slice(0, 10);
+        const timePart = `${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
+        const fileName = `Malt-AI-Patient-Summary-d-${datePart}-t-${timePart}.pdf`;
 
-            const blob = await response.blob();
-            const blobUrl = URL.createObjectURL(blob);
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-            if (isMobile) {
-                const opened = window.open(blobUrl, '_blank');
-                if (!opened) {
-                    window.location.href = blobUrl;
-                }
-            } else {
-                const now = new Date();
-                const datePart = now.toISOString().slice(0, 10);
-                const timePart = `${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
+        if (isMobile) {
+            // Android & Mobile: Convert blob to Data URL so mobile browsers recognize it as a downloadable file
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const dataUrl = e.target?.result as string;
+                if (!dataUrl) return;
 
                 const link = document.createElement('a');
-                link.href = blobUrl;
-                link.download = `Malt-AI-Patient-Summary-d-${datePart}-t-${timePart}.pdf`;
+                link.href = dataUrl;
+                link.download = fileName;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-            }
-
+            };
+            reader.readAsDataURL(blob);
+        } else {
+            // Desktop download trigger
+            const blobUrl = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
             setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-
-            // Trigger success state momentarily
-            setPdfStatus('success');
-            setTimeout(() => setPdfStatus('idle'), 2500);
-
-        } catch (err) {
-            console.error(err);
-            setPdfStatus('fail');
-            setTimeout(() => setPdfStatus('idle'), 3500); // Reset back to idle after 3.5 seconds
         }
-    };
+
+        // Trigger success state momentarily
+        setPdfStatus('success');
+        setTimeout(() => setPdfStatus('idle'), 2500);
+
+    } catch (err) {
+        console.error(err);
+        setPdfStatus('fail');
+        setTimeout(() => setPdfStatus('idle'), 3500);
+    }
+};
 
     return (
         <div className="w-full max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 flex flex-col gap-8 text-white select-text print:p-0 print:m-0 print:w-full print:max-w-none print:gap-2 print:text-black print:bg-white">
