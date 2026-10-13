@@ -51,3 +51,21 @@ button:disabled {
   opacity: 0.5;
   pointer-events: none;
 }
+
+@media print {    
+    .print-keep-together {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        display: block !important; /* Forces block layout so Puppeteer respects page breaks */
+    }
+}
+
+@media print {
+  /* Forces a structural spacer block at the top of every printed page */
+  .page-top-spacer {
+    display: block;
+    height: 1.2in; /* Adjust this height to match your header size */
+    width: 100%;
+    break-before: auto;
+  }
+}
