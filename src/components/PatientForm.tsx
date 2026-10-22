@@ -22,7 +22,8 @@ export const PatientForm: React.FC<PatientFormProps> = ({
   isLoading: externalLoading,
 }) => {
   const [activeTab, setActiveTab] = useState<'custom' | 'sample'>('custom');
-  const [selectedSampleCase, setSelectedSampleCase] = useState<number | null>(null);  const [AICooldownActive, setAICooldownActive] = useState(false)
+  const [selectedSampleCase, setSelectedSampleCase] = useState<number | undefined>(undefined);
+  const [AICooldownActive, setAICooldownActive] = useState(false)
   const [internalLoading, setInternalLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -86,21 +87,21 @@ export const PatientForm: React.FC<PatientFormProps> = ({
     }
   };
 
-// Checking logic:
-const shouldShowCustomAnalysis = (): boolean => {
-  const cooldownUntil = localStorage.getItem('malt_ai_rate_limited');
+  // Checking logic:
+  const shouldShowCustomAnalysis = (): boolean => {
+    const cooldownUntil = localStorage.getItem('malt_ai_rate_limited');
 
-  if (cooldownUntil && new Date().getTime() < new Date(cooldownUntil).getTime()) {
-    setAICooldownActive(true);
-    setActiveTab('sample');
-    return false;
-  }
+    if (cooldownUntil && new Date().getTime() < new Date(cooldownUntil).getTime()) {
+      setAICooldownActive(true);
+      setActiveTab('sample');
+      return false;
+    }
 
-  // Clear expired limit after 24 hours have passed
-  localStorage.removeItem('malt_ai_rate_limited');
-  setAICooldownActive(false);
-  return true;
-};
+    // Clear expired limit after 24 hours have passed
+    localStorage.removeItem('malt_ai_rate_limited');
+    setAICooldownActive(false);
+    return true;
+  };
 
   // Run on mount
   useEffect(() => {
@@ -120,59 +121,56 @@ const shouldShowCustomAnalysis = (): boolean => {
         </p>
       </section>
 
-<div className="w-full flex flex-col items-center mb-8 print:hidden">
-  {/* Centered Segmented Tab Switcher */}
-  <div className="w-full md:w-auto flex items-center">
-    <button
-      type="button"
-      hidden={AICooldownActive}
-      onClick={() => {
-        setSelectedSampleCase(null)
-        setFormData({ medications: "", allergies: "", caseDetails: "" });
-        setActiveTab('custom')
-      }}
-      className={`flex-1 md:flex-initial text-center px-6 py-3 rounded-l-lg text-base md:text-sm font-semibold transition-all cursor-pointer ${
-        activeTab === 'custom'
-          ? 'bg-white text-[#1400A9]'
-          : 'text-[#1400A9] bg-[#A5A6FF] hover:bg-white'
-      }`}
-    >
-      Custom Analysis
-    </button>
-    <button
-      type="button"
-      onClick={() => setActiveTab('sample')}
-      className={`flex-1 md:flex-initial text-center px-6 py-3 ${
-        AICooldownActive ? 'rounded-lg' : 'rounded-r-lg'
-      } text-base md:text-sm font-semibold transition-all cursor-pointer ${
-        activeTab === 'sample'
-          ? 'bg-white text-[#1400A9]'
-          : 'text-[#1400A9] bg-[#A5A6FF] hover:bg-white'
-      }`}
-    >
-      Sample Analysis
-    </button>
-  </div>
+      <div className="w-full flex flex-col items-center mb-8 print:hidden">
+        {/* Centered Segmented Tab Switcher */}
+        <div className="w-full md:w-auto flex items-center">
+          <button
+            type="button"
+            hidden={AICooldownActive}
+            onClick={() => {
+              setSelectedSampleCase(undefined)
+              setFormData({ medications: "", allergies: "", caseDetails: "" });
+              setActiveTab('custom')
+            }}
+            className={`flex-1 md:flex-initial text-center px-6 py-3 rounded-l-lg text-base md:text-sm font-semibold transition-all cursor-pointer ${activeTab === 'custom'
+                ? 'bg-white text-[#1400A9]'
+                : 'text-[#1400A9] bg-[#A5A6FF] hover:bg-white'
+              }`}
+          >
+            Custom Analysis
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('sample')}
+            className={`flex-1 md:flex-initial text-center px-6 py-3 ${AICooldownActive ? 'rounded-lg' : 'rounded-r-lg'
+              } text-base md:text-sm font-semibold transition-all cursor-pointer ${activeTab === 'sample'
+                ? 'bg-white text-[#1400A9]'
+                : 'text-[#1400A9] bg-[#A5A6FF] hover:bg-white'
+              }`}
+          >
+            Sample Analysis
+          </button>
+        </div>
 
-  {/* Dedicated Bottom Container for 'Analyze Another Case' (Preserves Layout Space) */}
-  <div className={`mt-4 ${selectedSampleCase ? "visible" : "invisible"}`}>
-    <button
-      type="button"
-      onClick={() => setSelectedSampleCase(null)}
-      className="px-6 py-3 rounded-xl bg-[#A5A6FF] text-[#1400A9] hover:bg-white font-semibold transition-all text-sm flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
-    >
-      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M10 19l-7-7m0 0l7-7m-7 7h18"
-        />
-      </svg>
-      Analyze Another Case
-    </button>
-  </div>
-</div>
+        {/* Dedicated Bottom Container for 'Analyze Another Case' (Preserves Layout Space) */}
+        <div className={`mt-4 ${selectedSampleCase ? "visible" : "invisible"}`}>
+          <button
+            type="button"
+            onClick={() => setSelectedSampleCase(undefined)}
+            className="px-6 py-3 rounded-xl bg-[#A5A6FF] text-[#1400A9] hover:bg-white font-semibold transition-all text-sm flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
+          >
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            Analyze Another Case
+          </button>
+        </div>
+      </div>
       {/* API Error Notification */}
       {errorMessage && (
         <div className="w-full mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/40 text-red-200 flex items-center justify-between text-sm sm:text-base">
@@ -249,12 +247,12 @@ const shouldShowCustomAnalysis = (): boolean => {
         {(activeTab === "sample" && !selectedSampleCase) && (
           <div className="flex flex-col gap-3 w-full mb-6">
             <div className="flex items-center gap-3">
-            <label htmlFor="sample-medical-cases" className="text-lg font-medium text-slate-200 md:border-r print:border-r border-[#A5A6FF]/60 pr-4">
-              Sample Medical Cases
-            </label>
-            <span className="text-xs px-2.5 py-0.5 text-white font-medium">
-              {SAMPLE_CASE.length} Preset Studies
-            </span>
+              <label htmlFor="sample-medical-cases" className="text-lg font-medium text-slate-200 md:border-r print:border-r border-[#A5A6FF]/60 pr-4">
+                Sample Medical Cases
+              </label>
+              <span className="text-xs px-2.5 py-0.5 text-white font-medium">
+                {SAMPLE_CASE.length} Preset Studies
+              </span>
             </div>
             <SampleCasesGallery
               onSelectCase={(study) => {
