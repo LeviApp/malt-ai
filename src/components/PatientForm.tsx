@@ -199,7 +199,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({
               rows={4}
               value={medications}
               onChange={handleChange}
-              disabled={isLoading || selectedSampleCase !== null}
+              disabled={isLoading || selectedSampleCase !== undefined}
               placeholder="List any current prescriptions, dosages, or supplements..."
               className={`w-full p-4 rounded-xl ${selectedSampleCase ? "bg-[#1400A9] readonly border-2 border-[#A5A6FF]" : "bg-gray-800 border border-[#A5A6FF]/30"} text-white placeholder-[#A5A6FF] focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] resize-none select-text cursor-text disabled:opacity-50`}
               autoComplete="off"
@@ -217,7 +217,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({
               rows={4}
               value={allergies}
               onChange={handleChange}
-              disabled={isLoading || selectedSampleCase !== null}
+              disabled={isLoading || selectedSampleCase !== undefined}
               placeholder="List known drug allergies or severe sensitivities..."
               className={`w-full p-4 rounded-xl ${selectedSampleCase ? "bg-[#1400A9] readonly border-2 border-[#A5A6FF]" : "bg-gray-800 border border-[#A5A6FF]/30"} text-white placeholder-[#A5A6FF] focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] resize-none select-text cursor-text disabled:opacity-50`}
               autoComplete="off"
@@ -236,7 +236,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({
               rows={4}
               value={caseDetails}
               onChange={handleChange}
-              disabled={isLoading || selectedSampleCase !== null}
+              disabled={isLoading || selectedSampleCase !== undefined}
               placeholder="Describe relevant medical history, specific concerns, or symptoms..."
               className={`w-full p-4 rounded-xl ${selectedSampleCase ? "bg-[#1400A9] readonly border-2 border-[#A5A6FF]" : "bg-gray-800 border border-[#A5A6FF]/30"} text-white placeholder-[#A5A6FF] focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] resize-none select-text cursor-text disabled:opacity-50`}
               autoComplete="off"
