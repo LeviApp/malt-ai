@@ -8,14 +8,12 @@ interface SampleCasesGalleryProps {
 
 export const SampleCasesGallery: React.FC<SampleCasesGalleryProps> = ({
   onSelectCase,
-  selectedCaseId,
 }) => {
   return (
     <div className="w-full max-w-6xl mx-auto mb-6 px-2 sm:px-0">
       {/* Grid mapping all 15 case cards */}
 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-h-[175px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-700">  
     {SAMPLE_CASE.map((study) => {
-    const isSelected = selectedCaseId === study.id;
     return (
 <button
   key={study.id}

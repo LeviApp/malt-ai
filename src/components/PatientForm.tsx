@@ -1,7 +1,9 @@
 // PatientForm.tsx
-import React, { act, use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { analyzePatientCase, type AnalysisRequest, type AnalysisResponse } from '../services/api';
 import { SampleCasesGallery } from './SampleCaseGallery';
+import { SAMPLE_CASE } from './SampleCase';
+
 interface FormState {
   medications: string;
   allergies: string;
@@ -20,8 +22,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({
   isLoading: externalLoading,
 }) => {
   const [activeTab, setActiveTab] = useState<'custom' | 'sample'>('custom');
-  const [selectedSampleCase, setSelectedSampleCase] = useState<number>(null);
-  const [AICooldownActive, setAICooldownActive] = useState(false)
+  const [selectedSampleCase, setSelectedSampleCase] = useState<number | null>(null);  const [AICooldownActive, setAICooldownActive] = useState(false)
   const [internalLoading, setInternalLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -252,7 +253,7 @@ const shouldShowCustomAnalysis = (): boolean => {
               Sample Medical Cases
             </label>
             <span className="text-xs px-2.5 py-0.5 text-white font-medium">
-              15 Preset Studies
+              {SAMPLE_CASE.length} Preset Studies
             </span>
             </div>
             <SampleCasesGallery
