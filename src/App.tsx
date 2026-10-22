@@ -24,6 +24,7 @@ function App() {
     <div id="results-container">
       <Nav />
       <MedicalNotice /> {/* Displays below Nav on mobile (< 768px), hidden on desktop */}
+      
       {!analysis ? (
         <PatientForm onSubmitSuccess={handleSuccess} />
       ) : (

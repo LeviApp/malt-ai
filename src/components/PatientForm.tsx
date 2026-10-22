@@ -1,6 +1,8 @@
 // PatientForm.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { analyzePatientCase, type AnalysisRequest, type AnalysisResponse } from '../services/api';
+import { SampleCasesGallery } from './SampleCaseGallery';
+import { SAMPLE_CASE } from './SampleCase';
 
 interface FormState {
   medications: string;
@@ -19,6 +21,9 @@ export const PatientForm: React.FC<PatientFormProps> = ({
   onSubmitSuccess,
   isLoading: externalLoading,
 }) => {
+  const [activeTab, setActiveTab] = useState<'custom' | 'sample'>('custom');
+  const [selectedSampleCase, setSelectedSampleCase] = useState<number | undefined>(undefined);
+  const [AICooldownActive, setAICooldownActive] = useState(false)
   const [internalLoading, setInternalLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -53,6 +58,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({
         medications: medications.trim(),
         allergies: allergies.trim(),
         caseDetails: caseDetails.trim(),
+        selectedSampleCase: selectedSampleCase
       };
 
       const response = await analyzePatientCase(payload);
@@ -67,7 +73,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({
         const fallbackMsg =
           response?.validationError ||
           response?.error ||
-          response?.regimenInteractionNotes?.[0]?.patientFriendly ||
+          response?.regimenInteractionNotes?.[0]?.alertDirective ||
           'The input could not be validated as a medical query.';
         setErrorMessage(fallbackMsg);
       }
@@ -80,6 +86,27 @@ export const PatientForm: React.FC<PatientFormProps> = ({
       setInternalLoading(false);
     }
   };
+
+  // Checking logic:
+  const shouldShowCustomAnalysis = (): boolean => {
+    const cooldownUntil = localStorage.getItem('malt_ai_rate_limited');
+
+    if (cooldownUntil && new Date().getTime() < new Date(cooldownUntil).getTime()) {
+      setAICooldownActive(true);
+      setActiveTab('sample');
+      return false;
+    }
+
+    // Clear expired limit after 24 hours have passed
+    localStorage.removeItem('malt_ai_rate_limited');
+    setAICooldownActive(false);
+    return true;
+  };
+
+  // Run on mount
+  useEffect(() => {
+    shouldShowCustomAnalysis();
+  }, []);
 
   return (
     <div className="w-full max-w-6xl mx-auto px-6 sm:px-10 lg:px-16 flex flex-col items-center select-text">
@@ -94,6 +121,56 @@ export const PatientForm: React.FC<PatientFormProps> = ({
         </p>
       </section>
 
+      <div className="w-full flex flex-col items-center mb-8 print:hidden">
+        {/* Centered Segmented Tab Switcher */}
+        <div className="w-full md:w-auto flex items-center">
+          <button
+            type="button"
+            hidden={AICooldownActive}
+            onClick={() => {
+              setSelectedSampleCase(undefined)
+              setFormData({ medications: "", allergies: "", caseDetails: "" });
+              setActiveTab('custom')
+            }}
+            className={`flex-1 md:flex-initial text-center px-6 py-3 rounded-l-lg text-base md:text-sm font-semibold transition-all cursor-pointer ${activeTab === 'custom'
+                ? 'bg-white text-[#1400A9]'
+                : 'text-[#1400A9] bg-[#A5A6FF] hover:bg-white'
+              }`}
+          >
+            Custom Analysis
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('sample')}
+            className={`flex-1 md:flex-initial text-center px-6 py-3 ${AICooldownActive ? 'rounded-lg' : 'rounded-r-lg'
+              } text-base md:text-sm font-semibold transition-all cursor-pointer ${activeTab === 'sample'
+                ? 'bg-white text-[#1400A9]'
+                : 'text-[#1400A9] bg-[#A5A6FF] hover:bg-white'
+              }`}
+          >
+            Sample Analysis
+          </button>
+        </div>
+
+        {/* Dedicated Bottom Container for 'Analyze Another Case' (Preserves Layout Space) */}
+        <div className={`mt-4 ${selectedSampleCase ? "visible" : "invisible"}`}>
+          <button
+            type="button"
+            onClick={() => setSelectedSampleCase(undefined)}
+            className="px-6 py-3 rounded-xl bg-[#A5A6FF] text-[#1400A9] hover:bg-white font-semibold transition-all text-sm flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
+          >
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            Analyze Another Case
+          </button>
+        </div>
+      </div>
       {/* API Error Notification */}
       {errorMessage && (
         <div className="w-full mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/40 text-red-200 flex items-center justify-between text-sm sm:text-base">
@@ -110,7 +187,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({
       {/* Form with side-by-side inputs and bottom action button */}
       <form onSubmit={handleSubmit} className="w-full flex flex-col gap-6 text-white">
         {/* Side-by-Side Inputs Container */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+        {(activeTab === "custom" || selectedSampleCase) && (<div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
           {/* Box 1: Medications */}
           <div className="flex flex-col gap-2">
             <label htmlFor="medications" className="medications-label text-lg font-medium">
@@ -122,14 +199,13 @@ export const PatientForm: React.FC<PatientFormProps> = ({
               rows={4}
               value={medications}
               onChange={handleChange}
-              disabled={isLoading}
+              disabled={isLoading || selectedSampleCase !== null}
               placeholder="List any current prescriptions, dosages, or supplements..."
-              className="w-full p-4 rounded-xl bg-gray-800 border border-[#A5A6FF]/30 text-white placeholder-[#A5A6FF] focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] resize-none select-text cursor-text disabled:opacity-50"
+              className={`w-full p-4 rounded-xl ${selectedSampleCase ? "bg-[#1400A9] readonly border-2 border-[#A5A6FF]" : "bg-gray-800 border border-[#A5A6FF]/30"} text-white placeholder-[#A5A6FF] focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] resize-none select-text cursor-text disabled:opacity-50`}
               autoComplete="off"
               spellCheck="false"
             />
           </div>
-
           {/* Box 2: Allergies */}
           <div className="flex flex-col gap-2">
             <label htmlFor="allergies" className="text-lg font-medium">
@@ -141,9 +217,9 @@ export const PatientForm: React.FC<PatientFormProps> = ({
               rows={4}
               value={allergies}
               onChange={handleChange}
-              disabled={isLoading}
+              disabled={isLoading || selectedSampleCase !== null}
               placeholder="List known drug allergies or severe sensitivities..."
-              className="w-full p-4 rounded-xl bg-gray-800 border border-[#A5A6FF]/30 text-white placeholder-[#A5A6FF] focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] resize-none select-text cursor-text disabled:opacity-50"
+              className={`w-full p-4 rounded-xl ${selectedSampleCase ? "bg-[#1400A9] readonly border-2 border-[#A5A6FF]" : "bg-gray-800 border border-[#A5A6FF]/30"} text-white placeholder-[#A5A6FF] focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] resize-none select-text cursor-text disabled:opacity-50`}
               autoComplete="off"
               spellCheck="false"
             />
@@ -160,17 +236,43 @@ export const PatientForm: React.FC<PatientFormProps> = ({
               rows={4}
               value={caseDetails}
               onChange={handleChange}
-              disabled={isLoading}
+              disabled={isLoading || selectedSampleCase !== null}
               placeholder="Describe relevant medical history, specific concerns, or symptoms..."
-              className="w-full p-4 rounded-xl bg-gray-800 border border-[#A5A6FF]/30 text-white placeholder-[#A5A6FF] focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] resize-none select-text cursor-text disabled:opacity-50"
+              className={`w-full p-4 rounded-xl ${selectedSampleCase ? "bg-[#1400A9] readonly border-2 border-[#A5A6FF]" : "bg-gray-800 border border-[#A5A6FF]/30"} text-white placeholder-[#A5A6FF] focus:outline-none focus:ring-2 focus:ring-[#A5A6FF] resize-none select-text cursor-text disabled:opacity-50`}
               autoComplete="off"
               spellCheck="false"
             />
           </div>
-        </div>
+        </div>)}
+        {(activeTab === "sample" && !selectedSampleCase) && (
+          <div className="flex flex-col gap-3 w-full mb-6">
+            <div className="flex items-center gap-3">
+              <label htmlFor="sample-medical-cases" className="text-lg font-medium text-slate-200 md:border-r print:border-r border-[#A5A6FF]/60 pr-4">
+                Sample Medical Cases
+              </label>
+              <span className="text-xs px-2.5 py-0.5 text-white font-medium">
+                {SAMPLE_CASE.length} Preset Studies
+              </span>
+            </div>
+            <SampleCasesGallery
+              onSelectCase={(study) => {
+                // 1. Auto-fill the form text boxes
+                setFormData({
+                  medications: study.inputs.medications,
+                  allergies: study.inputs.allergies,
+                  caseDetails: study.inputs.caseDetails
+                });
+                setSelectedSampleCase(study.id)
+                // 2. Load the pre-compiled clinical analysis output directly
+                // setAnalysisResult(study.mockOutput);
+              }}
+            // selectedCaseId={selectedCase?.id}
+            />
+          </div>
+        )}
 
         {/* Action: Send Button */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full pt-2">
+        {(activeTab === "custom" || (activeTab === "sample" && selectedSampleCase)) && (<div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full pt-2">
           <div className="md:col-start-2">
             <button
               type="submit"
@@ -209,7 +311,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({
               )}
             </button>
           </div>
-        </div>
+        </div>)}
       </form>
     </div>
   );

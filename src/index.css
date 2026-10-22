@@ -52,6 +52,14 @@ button:disabled {
   pointer-events: none;
 }
 
+.readonly:disabled {
+  opacity: 1;
+}
+
+.sample-card:hover span {
+  color: white;
+}
+
 @media print {    
     .print-keep-together {
         break-inside: avoid !important;
