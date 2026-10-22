@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { type AnalysisResponse } from '../services/api';
 import { SeverityBadge } from './SeverityBadge';
-
+import { SafetyGuardModal } from './SafetyGuardModal';
 interface ResultsDashboardProps {
     data: AnalysisResponse;
     onReset?: () => void;
@@ -13,9 +13,17 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 }) => {
     const [activeTab, setActiveTab] = useState<'clinical' | 'patient'>('clinical');
     const [pdfStatus, setPdfStatus] = useState<'idle' | 'generating' | 'success' | 'fail'>('idle');
-    const { medicationAnalyses = [], regimenInteractionNotes = [] } = data || {};
-    const isEmergency = data?.isEmergency ?? false;
-    const isHighAcuity = data?.isHighAcuity ?? false;
+const { 
+  medicationAnalyses = [], 
+  regimenInteractionNotes = [],
+  safety_modal_trigger
+} = (data as AnalysisResponse) || {};
+
+// Extract the unified alertDirective from the first interaction note if present
+const alertDirective = regimenInteractionNotes[0]?.alertDirective;
+
+const isEmergency = data?.isEmergency ?? false;
+const isHighAcuity = data?.isHighAcuity ?? false;
 
     const handleDownloadPdf = async () => {
         if (pdfStatus === 'generating') return;
@@ -114,59 +122,13 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             `}</style>
 
             {/* 🚨 PROMINENT EMERGENCY BANNER */}
-            {isEmergency ? (
-                <div className={`p-6 sm:p-8 rounded-2xl border-4 shadow-2xl flex flex-col gap-6 transition-all ${isHighAcuity
-                    ? 'bg-red-950/90 border-red-500 shadow-red-900/50 animate-pulse-subtle print:border-red-600 print:bg-red-50'
-                    : 'bg-slate-900/90 border-amber-500/80 shadow-amber-900/30 print:border-amber-500 print:bg-amber-50/80'
-                    }`}>
-                    <div className={`flex items-center gap-3 border-b pb-4 ${isHighAcuity ? 'border-red-500/30' : 'border-amber-500/30'}`}>
-                        <svg className={`w-8 h-8 shrink-0 ${isHighAcuity ? 'text-red-500' : 'text-amber-400 print:text-amber-700'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                        <div>
-                            <h3 className={`md:grid-cols-2 text-2xl font-extrabold tracking-wide uppercase ${isHighAcuity ? 'text-red-400 print:text-red-800' : 'text-amber-300 print:text-amber-900'}`}>
-                                {isHighAcuity ? 'Emergency Medical Alert' : 'First Aid & Urgent Guidance'}
-                            </h3>
-                        </div>
-                    </div>
-
-                    <div className="space-y-3">
-                        {regimenInteractionNotes.map((note, idx) => (
-                            <p key={idx} className={`text-base sm:text-lg font-normal leading-relaxed ${isHighAcuity ? 'text-red-100/90 print:text-red-950' : 'text-slate-200 print:text-slate-900'}`}>
-                                {note.patientFriendly}
-                            </p>
-                        ))}
-                    </div>
-
-                    <div className={`pt-2 flex flex-wrap gap-4 items-center justify-between border-t ${isHighAcuity ? 'border-red-500/30' : 'border-amber-500/30'}`}>
-                        <div className="flex items-center gap-3">
-                            {onReset && (
-                                <button
-                                    type="button"
-                                    onClick={onReset}
-                                    className={`px-5 py-3 rounded-xl font-semibold text-sm border transition-all cursor-pointer print:hidden ${isHighAcuity
-                                        ? 'bg-red-900/80 hover:bg-red-800 text-red-100 border-red-500/40'
-                                        : 'bg-amber-500/30 hover:bg-amber-400/50 text-amber-200 border-amber-500/40'
-                                        }`}
-                                >
-                                    Start New Analysis
-                                </button>
-                            )}
-                            {isHighAcuity && (
-                                <a
-                                    href="tel:911"
-                                    className="px-6 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black tracking-wider text-base uppercase transition-all shadow-lg flex items-center gap-2 cursor-pointer print:hidden"
-                                >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1.01 1.01 0 011.21-.502l4.493 1.498a1.1 1.1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                    </svg>
-                                    CALL 911 NOW!
-                                </a>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            ) : (
+            {isEmergency ? (<SafetyGuardModal
+  isHighAcuity={isHighAcuity}
+  alertDirective={alertDirective}
+  safety_modal_trigger={safety_modal_trigger}
+  regimenInteractionNotes={regimenInteractionNotes}
+  onReset={onReset}
+/>) : (
                 <>
                     {/* Top Header Actions */}
                     <div className="flex flex-col gap-2 pb-2 print:pb-1">
@@ -192,12 +154,12 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                                     onClick={handleDownloadPdf}
                                     disabled={pdfStatus === 'generating'}
                                     className={`flex-1 min-[525px]:flex-none px-3 py-2 min-[525px]:px-2.5 min-[525px]:py-1.5 sm:px-5 sm:py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 sm:gap-2 font-medium whitespace-nowrap text-[13px] min-[550px]:text-sm sm:text-sm ${pdfStatus === 'success'
-                                            ? 'bg-emerald-100 text-emerald-800'
-                                            : pdfStatus === 'fail'
-                                                ? 'bg-rose-100 text-rose-800'
-                                                : pdfStatus === 'generating'
-                                                    ? 'bg-[#A5A6FF] text-[#1400A9] cursor-wait'
-                                                    : 'bg-[#A5A6FF] text-[#1400A9] hover:bg-white cursor-pointer'
+                                        ? 'bg-emerald-100 text-emerald-800'
+                                        : pdfStatus === 'fail'
+                                            ? 'bg-rose-100 text-rose-800'
+                                            : pdfStatus === 'generating'
+                                                ? 'bg-[#A5A6FF] text-[#1400A9] cursor-wait'
+                                                : 'bg-[#A5A6FF] text-[#1400A9] hover:bg-white cursor-pointer'
                                         }`}
                                     title="Print or export analysis"
                                 >
@@ -353,9 +315,9 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                                 className="p-6 rounded-2xl bg-[#1400A9] border border-[#A5A6FF]/20 flex flex-col gap-6 print:p-2 print:gap-1.5 print:border-gray-300 print:bg-white print:text-black print:rounded-xl print-keep-together"
                             >
                                 {/* Target Drug Title Bar - Adjusted width constraints for print */}
-                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-[#A5A6FF]/10 pb-4 print:border-gray-200 print:pb-1 print-keep-together">
-                                    <div className="shrink-0 max-w-[65%] print:max-w-[65%]">
-                                        <span className="text-xs font-semibold uppercase tracking-wider text-[#A5A6FF] print:text-[7.5pt] print:text-indigo-800 print:font-bold">
+                                <div className="flex flex-col sm:flex-row justify-between items-stretch gap-4 border-b border-[#A5A6FF]/10 pb-4 print:border-gray-200 print:pb-1 print-keep-together">
+                                    <div className="shrink-0 max-w-[65%] print:max-w-[65%] flex flex-col justify-center">
+                                        <span className="text-xs font-semibold uppercase tracking-wider text-[#A5A6FF] print:text-[7.5pt] print:text-indigo-800 print:font-bold block">
                                             Target Drug #{index + 1}
                                         </span>
                                         <h3 className="text-2xl font-bold text-white print:text-[10pt] print:font-bold print:text-gray-900 mt-0.5 print:whitespace-nowrap print:overflow-hidden print:text-ellipsis">
@@ -363,7 +325,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                                         </h3>
                                     </div>
                                     {item.reasonForSwitch && (
-                                        <div className="pl-3 border-l-2 border-[#A5A6FF]/60 print:border-indigo-400 my-1 flex-1 min-w-0">
+                                        <div className="pl-3 border-l-2 border-[#A5A6FF]/60 print:border-indigo-400 flex-1 min-w-0 flex items-center">
                                             <span className="text-xs sm:text-sm text-slate-200 print:text-[7pt] print:text-gray-700 block leading-tight">
                                                 <strong className="text-white print:text-gray-900">Switch Reason: </strong>
                                                 {typeof item.reasonForSwitch === 'string'
