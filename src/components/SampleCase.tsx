@@ -372,5 +372,16 @@ export const SAMPLE_CASE: SampleCase[] = [
       allergies: "NKDA",
       caseDetails: "69 y/o female with severe asthma/COPD overlap, seasonal allergic rhinitis, chronic insomnia, and mild tremor. Experiencing tachyarrhythmias, urinary retention, severe dry mouth, and daytime sedation. Seeking complete outpatient regimen optimization."
     }
-  }
+  },
+  // {
+  //   id: 25,
+  //   title: "25. Comprehensive Multi-System Polypharmacy Stress Test",
+  //   category: "Complex Senior Care",
+  //   quickSummary: "Exhaustive multi-system review of complex cardiovascular, endocrine, and neurological medications to audit renal clearance, electrolyte risks, and polypharmacy burden.",
+  //   inputs: {
+  //     medications: "Apixaban 5mg PO BID, Furosemide 40mg PO BID, Spironolactone 25mg PO QD, Metoprolol Succinate 100mg PO QD, Lisinopril 20mg PO QD, Atorvastatin 80mg PO QD, Metformin 1000mg PO BID, Levothyroxine 125mcg PO QD, Omeprazole 40mg PO QD, Gabapentin 600mg PO TID, Sertraline 100mg PO QD, Trazodone 50mg PO QHS PRN, Zolpidem 5mg PO QHS PRN, Meloxicam 15mg PO QD PRN, Potassium Chloride 20mEq PO QD",
+  //     allergies: "Penicillin (Anaphylaxis)",
+  //     caseDetails: "78 y/o male presenting with stage 3b chronic kidney disease, heart failure with preserved ejection fraction (HFpEF), type 2 diabetes, peripheral neuropathy, and osteoarthritis. Experiencing progressive fatigue, mild cognitive clouding, and peripheral edema. Requesting complete multi-system interaction screen and renal safety audit across 15 active agents."
+  //   }
+  // }
 ];

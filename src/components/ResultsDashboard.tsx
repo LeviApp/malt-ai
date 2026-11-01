@@ -25,73 +25,97 @@ const alertDirective = regimenInteractionNotes[0]?.alertDirective;
 const isEmergency = data?.isEmergency ?? false;
 const isHighAcuity = data?.isHighAcuity ?? false;
 
-    const handleDownloadPdf = async () => {
-        if (pdfStatus === 'generating') return;
+const handleDownloadPdf = async () => {
+    if (pdfStatus === 'generating') return;
 
-        try {
-            setPdfStatus('generating');
-            const container = document.getElementById('results-container');
-            if (!container) {
-                alert("Results container not found!");
-                setPdfStatus('fail');
-                setTimeout(() => setPdfStatus('idle'), 3500);
-                return;
-            }
+    // Create an AbortController for a 60-second timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
 
-            const reportHTML = container.innerHTML;
-            const API_BASE_URL = import.meta.env.VITE_MALT_API_URL || 'http://localhost:5001/api';
-
-            const response = await fetch(`${API_BASE_URL}/generate-pdf`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ reportHTML })
-            });
-
-            if (!response.ok) throw new Error('Failed to generate PDF');
-
-            const blob = await response.blob();
-
-            // Generate timestamp string
-            const now = new Date();
-            const datePart = now.toISOString().slice(0, 10);
-            const timePart = `${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
-            const fileName = `Malt-AI-Patient-Summary-d-${datePart}-t-${timePart}.pdf`;
-
-            // Detect restricted in-app social browsers (like Facebook/Instagram webviews)
-            const ua = navigator.userAgent || navigator.vendor || (window as any).opera;
-            const isInAppBrowser = /FBAN|FBAV|Instagram|Twitter|LinkedInApp/i.test(ua);
-
-            const blobUrl = URL.createObjectURL(blob);
-
-            if (isInAppBrowser) {
-                // In-app browsers block direct downloads; open as Data/Blob URL in a new tab 
-                // so the user can view/save it using the platform's built-in viewer.
-                const opened = window.open(blobUrl, '_blank');
-                if (!opened) {
-                    window.location.href = blobUrl;
-                }
-            } else {
-                // Standard Desktop & Mobile Browsers (Chrome, Safari, Firefox, Edge)
-                const link = document.createElement('a');
-                link.href = blobUrl;
-                link.download = fileName;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
-
-            // Clean up the object URL after a safe delay
-            setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
-
-            setPdfStatus('success');
-            setTimeout(() => setPdfStatus('idle'), 2500);
-
-        } catch (err) {
-            console.error(err);
+    try {
+        setPdfStatus('generating');
+        const container = document.getElementById('results-container');
+        if (!container) {
+            alert("Results container not found!");
             setPdfStatus('fail');
             setTimeout(() => setPdfStatus('idle'), 3500);
+            return;
         }
-    };
+
+        // 1. Clone & Clean DOM to drastically shrink payload size
+        const clone = container.cloneNode(true) as HTMLElement;
+        
+        // Remove interactive scripts, unneeded UI controls, or hidden buttons from PDF payload
+        clone.querySelectorAll('button, script, .no-print, [aria-hidden="true"]').forEach(el => el.remove());
+
+        const reportHTML = clone.innerHTML;
+
+        const API_BASE_URL = import.meta.env.VITE_MALT_API_URL || 'http://localhost:5001/api';
+
+        // 2. Fetch with AbortController signal
+        const response = await fetch(`${API_BASE_URL}/generate-pdf`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reportHTML }),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => '');
+            throw new Error(`Server returned ${response.status}: ${errorText || 'Failed to generate PDF'}`);
+        }
+
+        const blob = await response.blob();
+        if (blob.size === 0) throw new Error('Received empty PDF blob');
+
+        // Generate filename
+        const now = new Date();
+        const datePart = now.toISOString().slice(0, 10);
+        const timePart = `${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
+        const fileName = `Malt-AI-Patient-Summary-d-${datePart}-t-${timePart}.pdf`;
+
+        // Mobile / In-App WebView check
+        const ua = navigator.userAgent || navigator.vendor || (window as any).opera;
+        const isInAppBrowser = /FBAN|FBAV|Instagram|Twitter|LinkedInApp/i.test(ua);
+
+        const blobUrl = URL.createObjectURL(blob);
+
+        if (isInAppBrowser) {
+            // For in-app browsers, attempt opening or fallback gracefully
+            const opened = window.open(blobUrl, '_blank');
+            if (!opened) {
+                window.location.href = blobUrl;
+            }
+        } else {
+            // Standard Browser Download Trigger
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Clean up object URL
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
+
+        setPdfStatus('success');
+        setTimeout(() => setPdfStatus('idle'), 2500);
+
+    } catch (err: any) {
+        clearTimeout(timeoutId);
+        if (err.name === 'AbortError') {
+            console.error('PDF generation timed out (exceeded 60s)');
+            alert('PDF generation took too long for this large report. Please try again.');
+        } else {
+            console.error('PDF Generation Error:', err);
+        }
+        setPdfStatus('fail');
+        setTimeout(() => setPdfStatus('idle'), 3500);
+    }
+};
 
     return (
         <div className="w-full max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 flex flex-col gap-8 text-white select-text print:p-0 print:m-0 print:w-full print:max-w-none print:gap-2 print:text-black print:bg-white">
