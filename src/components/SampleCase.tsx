@@ -383,5 +383,16 @@ export const SAMPLE_CASE: SampleCase[] = [
   //     allergies: "Penicillin (Anaphylaxis)",
   //     caseDetails: "78 y/o male presenting with stage 3b chronic kidney disease, heart failure with preserved ejection fraction (HFpEF), type 2 diabetes, peripheral neuropathy, and osteoarthritis. Experiencing progressive fatigue, mild cognitive clouding, and peripheral edema. Requesting complete multi-system interaction screen and renal safety audit across 15 active agents."
   //   }
+  // },
+  // {
+  //   id: 99,
+  //   title: "99. Rate Limit Test Case",
+  //   category: "Testing",
+  //   quickSummary: "Test case designed to intentionally trip the 429 rate limit response.",
+  //   inputs: {
+  //     medications: "Aspirin 81mg PO QD",
+  //     allergies: "NKDA",
+  //     caseDetails: "TRIGGER_429 - Testing rate limit error handling and localStorage cooldown."
+  //   }
   // }
 ];
