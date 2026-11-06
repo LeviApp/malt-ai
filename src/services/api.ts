@@ -74,17 +74,16 @@ export async function analyzePatientCase(data: AnalysisRequest): Promise<Analysi
       body: JSON.stringify(data),
     });
 
-    let isRateLimited = false;
+    let isRateLimited = response.status === 429;
 
-    // Handle 429 specifically without halting execution
-    if (response.status === 429) {
-      isRateLimited = true;
-      // Calculate exact timestamp 24 hours (24 * 60 * 60 * 1000 ms) from now
+    // Handle explicit HTTP 429 status from gateway
+    if (isRateLimited) {
       const ONE_DAY_MS = 24 * 60 * 60 * 1000;
       const cooldownExpiration = new Date(Date.now() + ONE_DAY_MS).toISOString();
-
       localStorage.setItem('malt_ai_rate_limited', cooldownExpiration);
-    } else if (!response.ok) {
+    }
+
+    if (!response.ok && !isRateLimited) {
       // Throw for non-429 server error statuses (500, 503, 400, etc.)
       const errorData = await response.json().catch(() => null);
       const errorMessage =
@@ -94,15 +93,61 @@ export async function analyzePatientCase(data: AnalysisRequest): Promise<Analysi
       throw new Error(errorMessage);
     }
 
-    // Safely parse JSON payload (or fallback to empty object if unparseable)
+    // Safely parse JSON payload (this captures your backend's graceful fallback payload!)
     const rawData = await response.json().catch(() => ({}));
 
-    const disclaimer = 'Note: Due to high request volume, this analysis may be based on simplified or partial evaluation.';
+    // FIXED: Check if the backend's fallback payload reported exhaustion or emergency state
+    const isBackendExhausted = rawData?.meta?.exhausted === true || rawData?.isEmergency === true;
+    if (isBackendExhausted || isRateLimited) {
+      isRateLimited = true;
+      const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+      const cooldownExpiration = new Date(Date.now() + ONE_DAY_MS).toISOString();
+      localStorage.setItem('malt_ai_rate_limited', cooldownExpiration);
+    }
 
+    const analyses = rawData?.medicationAnalyses || [];
+    const notes = rawData?.regimenInteractionNotes;
+    
+    let alertDirectiveMessage = '';
+    if (Array.isArray(notes) && notes[0]?.alertDirective) {
+      alertDirectiveMessage = notes[0].alertDirective;
+    } else if (notes?.patientFriendly) {
+      alertDirectiveMessage = notes.patientFriendly;
+    } else {
+      alertDirectiveMessage = 'Daily system request limit reached. You can continue testing the application by choosing one of the pre-configured sample cases.';
+    }
+
+    // 1. RATE LIMITED / EXHAUSTED CASE: Force Modal Trigger
+    if (isRateLimited || isBackendExhausted || analyses.length === 0) {
+      return {
+        isValidInput: true,
+        isEmergency: true, // Forces your frontend modal/overlay to pop open!
+        isHighAcuity: false,
+        safety_modal_trigger: "RATE_LIMIT_EXCEEDED",
+        meta: {
+          timestamp: new Date().toISOString(),
+          model: rawData?.meta?.model || 'malt-ai-clinical-v2',
+        },
+        inputSummary: {
+          clinical: rawData?.inputSummary?.clinical || "Analysis restricted due to temporary system rate constraints.",
+          patientFriendly: rawData?.inputSummary?.patientFriendly || "Daily system request limit reached for custom analyses.",
+        },
+        regimenInteractionNotes: [
+          {
+            alertDirective: alertDirectiveMessage,
+            clinical: "Upstream API quota exhausted. Free Tier daily request limit reached.",
+            patientFriendly: alertDirectiveMessage,
+          }
+        ],
+        medicationAnalyses: [],
+      };
+    }
+
+    // 2. NORMAL SUCCESSFUL CASE WITH DATA
+    const disclaimer = 'Note: Due to high request volume, this analysis may be based on simplified or partial evaluation.';
     const existingClinical = rawData?.inputSummary?.clinical || '';
     const existingPatientFriendly = rawData?.inputSummary?.patientFriendly || '';
 
-    // Format final response, preserving any generated summary data if it was created
     const result: AnalysisResponse = {
       ...rawData,
       isValidInput: rawData?.isValidInput ?? true,
@@ -113,22 +158,18 @@ export async function analyzePatientCase(data: AnalysisRequest): Promise<Analysi
         model: 'malt-ai-clinical-v2',
       },
       inputSummary: {
-        clinical: isRateLimited
-          ? `[RATE_LIMITED] ${existingClinical}`.trim()
-          : existingClinical,
-        patientFriendly: isRateLimited
-          ? `${disclaimer} ${existingPatientFriendly}`.trim()
-          : existingPatientFriendly,
+        clinical: `${disclaimer}${existingClinical}`,
+        patientFriendly: `${disclaimer}${existingPatientFriendly}`,
       },
       regimenInteractionNotes: rawData?.regimenInteractionNotes || [],
-      medicationAnalyses: rawData?.medicationAnalyses || [],
+      medicationAnalyses: analyses,
     };
 
     return result;
+
   } catch (error: any) {
     console.error('API Error in analyzePatientCase:', error);
 
-    // Catch standard browser network connection failures
     if (error instanceof TypeError || error?.message?.toLowerCase().includes('fetch')) {
       throw new Error(
         'Unable to reach backend server. Please verify Express server is running on port 5001.'

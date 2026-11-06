@@ -74,7 +74,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({
           response?.validationError ||
           response?.error ||
           response?.regimenInteractionNotes?.[0]?.alertDirective ||
-          'The input could not be validated as a medical query.';
+          'Please enter a valid list of medications or clinical details so we can run your medical review.';
         setErrorMessage(fallbackMsg);
       }
     } catch (err: any) {
