@@ -74,17 +74,9 @@ export async function analyzePatientCase(data: AnalysisRequest): Promise<Analysi
       body: JSON.stringify(data),
     });
 
-    let isRateLimited = response.status === 429;
+    const isHttp429 = response.status === 429;
 
-    // Handle explicit HTTP 429 status from gateway
-    if (isRateLimited) {
-      const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-      const cooldownExpiration = new Date(Date.now() + ONE_DAY_MS).toISOString();
-      localStorage.setItem('malt_ai_rate_limited', cooldownExpiration);
-    }
-
-    if (!response.ok && !isRateLimited) {
-      // Throw for non-429 server error statuses (500, 503, 400, etc.)
+    if (!response.ok && !isHttp429) {
       const errorData = await response.json().catch(() => null);
       const errorMessage =
         errorData?.message ||
@@ -93,13 +85,11 @@ export async function analyzePatientCase(data: AnalysisRequest): Promise<Analysi
       throw new Error(errorMessage);
     }
 
-    // Safely parse JSON payload (this captures your backend's graceful fallback payload!)
     const rawData = await response.json().catch(() => ({}));
-
-    // FIXED: Check if the backend's fallback payload reported exhaustion or emergency state
     const isBackendExhausted = rawData?.meta?.exhausted === true || rawData?.isEmergency === true;
-    if (isBackendExhausted || isRateLimited) {
-      isRateLimited = true;
+    const isRateLimited = isHttp429 || isBackendExhausted;
+
+    if (isRateLimited) {
       const ONE_DAY_MS = 24 * 60 * 60 * 1000;
       const cooldownExpiration = new Date(Date.now() + ONE_DAY_MS).toISOString();
       localStorage.setItem('malt_ai_rate_limited', cooldownExpiration);
@@ -107,48 +97,52 @@ export async function analyzePatientCase(data: AnalysisRequest): Promise<Analysi
 
     const analyses = rawData?.medicationAnalyses || [];
     const notes = rawData?.regimenInteractionNotes;
-    
+
     let alertDirectiveMessage = '';
     if (Array.isArray(notes) && notes[0]?.alertDirective) {
       alertDirectiveMessage = notes[0].alertDirective;
     } else if (notes?.patientFriendly) {
       alertDirectiveMessage = notes.patientFriendly;
     } else {
-      alertDirectiveMessage = 'Daily system request limit reached. You can continue testing the application by choosing one of the pre-configured sample cases.';
+      alertDirectiveMessage =
+        'Daily system request limit reached. You can continue testing the application by choosing one of the pre-configured sample cases.';
     }
 
-    // 1. RATE LIMITED / EXHAUSTED CASE: Force Modal Trigger
-    if (isRateLimited || isBackendExhausted || analyses.length === 0) {
+    // 1. RATE LIMITED / EXHAUSTED CASE
+    if (isRateLimited || analyses.length === 0) {
+      const rateLimitDisclaimer =
+        'Note: Due to high request volume, this analysis may be based on simplified or partial evaluation. ';
+      const existingClinical =
+        rawData?.inputSummary?.clinical || 'Analysis restricted due to temporary system rate constraints.';
+      const existingPatientFriendly =
+        rawData?.inputSummary?.patientFriendly || 'Daily system request limit reached for custom analyses.';
+
       return {
         isValidInput: true,
-        isEmergency: true, // Forces your frontend modal/overlay to pop open!
+        isEmergency: true,
         isHighAcuity: false,
-        safety_modal_trigger: "RATE_LIMIT_EXCEEDED",
+        safety_modal_trigger: 'RATE_LIMIT_EXCEEDED',
         meta: {
           timestamp: new Date().toISOString(),
           model: rawData?.meta?.model || 'malt-ai-clinical-v2',
         },
         inputSummary: {
-          clinical: rawData?.inputSummary?.clinical || "Analysis restricted due to temporary system rate constraints.",
-          patientFriendly: rawData?.inputSummary?.patientFriendly || "Daily system request limit reached for custom analyses.",
+          clinical: `${rateLimitDisclaimer}${existingClinical}`,
+          patientFriendly: `${rateLimitDisclaimer}${existingPatientFriendly}`,
         },
         regimenInteractionNotes: [
           {
             alertDirective: alertDirectiveMessage,
-            clinical: "Upstream API quota exhausted. Free Tier daily request limit reached.",
+            clinical: 'Upstream API quota exhausted. Free Tier daily request limit reached.',
             patientFriendly: alertDirectiveMessage,
-          }
+          },
         ],
         medicationAnalyses: [],
       };
     }
 
-    // 2. NORMAL SUCCESSFUL CASE WITH DATA
-    const disclaimer = 'Note: Due to high request volume, this analysis may be based on simplified or partial evaluation.';
-    const existingClinical = rawData?.inputSummary?.clinical || '';
-    const existingPatientFriendly = rawData?.inputSummary?.patientFriendly || '';
-
-    const result: AnalysisResponse = {
+    // 2. NORMAL SUCCESSFUL CASE WITH DATA (No 429 disclaimer)
+    return {
       ...rawData,
       isValidInput: rawData?.isValidInput ?? true,
       isEmergency: rawData?.isEmergency ?? false,
@@ -158,15 +152,12 @@ export async function analyzePatientCase(data: AnalysisRequest): Promise<Analysi
         model: 'malt-ai-clinical-v2',
       },
       inputSummary: {
-        clinical: `${disclaimer}${existingClinical}`,
-        patientFriendly: `${disclaimer}${existingPatientFriendly}`,
+        clinical: rawData?.inputSummary?.clinical || '',
+        patientFriendly: rawData?.inputSummary?.patientFriendly || '',
       },
       regimenInteractionNotes: rawData?.regimenInteractionNotes || [],
       medicationAnalyses: analyses,
     };
-
-    return result;
-
   } catch (error: any) {
     console.error('API Error in analyzePatientCase:', error);
 
